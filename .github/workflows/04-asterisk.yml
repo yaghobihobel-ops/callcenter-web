@@ -1,0 +1,30 @@
+name: "04 · Asterisk PBX configs"
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["asterisk/**", "scripts/validate-asterisk.py", ".github/workflows/04-asterisk.yml"]
+  pull_request:
+    paths: ["asterisk/**", "scripts/validate-asterisk.py"]
+  workflow_dispatch:
+
+jobs:
+  asterisk:
+    name: Static dialplan / pjsip validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate templates, endpoints, dialplan, sounds
+        run: python3 scripts/validate-asterisk.py
+
+      - name: Sounds inventory
+        run: |
+          ls -la asterisk/sounds/fa/custom/
+          N=$(ls asterisk/sounds/fa/custom/*.wav | wc -l)
+          echo "Persian IVR sounds: $N"
+          [ "$N" -ge 5 ] || { echo "::error::sounds missing"; exit 1; }

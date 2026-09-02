@@ -1,0 +1,50 @@
+# ==== Call Center - nginx vhost (call.<domain>) ====
+# Rendered by installer/install.sh from this template.
+# Placeholders: __CC_DOMAIN__ (e.g. call.firuzo.online)
+#               __APP_HOST__  (LAN IP / 127.0.0.1 of backend host)
+#               __APP_PORT__  (default 3006)
+#               __PBX_HOST__  (LAN IP of Asterisk host)
+#               __CERT__ __KEY__ (TLS cert paths)
+#
+# Panel/API -> Node app | SIP-over-WSS -> Asterisk
+server {
+    server_name __CC_DOMAIN__;
+    listen 443 ssl;
+    ssl_certificate __CERT__;
+    ssl_certificate_key __KEY__;
+    charset utf-8;
+    client_max_body_size 8m;
+
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options SAMEORIGIN always;
+
+    # SIP over WebSocket (signaling) -> Asterisk built-in HTTP server
+    location /ws {
+        proxy_pass http://__PBX_HOST__:8088;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        proxy_buffering off;
+    }
+
+    # Panel, API, widget, static -> backend app
+    location / {
+        proxy_pass http://__APP_HOST__:__APP_PORT__;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 120s;
+        proxy_buffering off;
+    }
+
+    access_log /var/log/nginx/__CC_DOMAIN__.access.log;
+    error_log /var/log/nginx/__CC_DOMAIN__.error.log;
+}

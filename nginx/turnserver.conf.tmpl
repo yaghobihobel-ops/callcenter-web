@@ -1,0 +1,23 @@
+; ==== Call Center - coturn (TURN/STUN relay) ====
+; Rendered by installer/install.sh from this template.
+; Placeholders: __PUBLIC_IP__ (public IP seen by visitors)
+;               __LAN_IP__    (LAN IP of this host)
+;               __TURN_USER__ __TURN_PASS__ __REALM__
+;
+listening-port=3478
+listening-ip=__LAN_IP__
+relay-ip=__LAN_IP__
+external-ip=__PUBLIC_IP__/__LAN_IP__
+min-port=49160
+max-port=49200
+fingerprint
+lt-cred-mech
+realm=__REALM__
+user=__TURN_USER__:__TURN_PASS__
+no-tls
+no-dtls
+stale-nonce=600
+user-quota=0
+total-quota=0
+no-cli
+log-file=/var/log/turnserver.log

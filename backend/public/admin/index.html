@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c4a6e">
+<title>پنل مدیریت کال‌سنتر — فیرزو</title>
+<style>
+:root{
+  --bg:#0b2942; --card:#fff; --ink:#0f172a; --sub:#64748b; --brand:#0ea5e9; --brand2:#0369a1; --brand3:#0c4a6e;
+  --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626; --soft:#f1f5f9; --line:#e2e8f0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Vazirmatn,'Segoe UI',Tahoma,-apple-system,sans-serif;background:
+  radial-gradient(1200px 500px at 85% -10%, rgba(14,165,233,.25), transparent 60%),
+  radial-gradient(900px 420px at 0% 110%, rgba(2,132,199,.18), transparent 55%),
+  linear-gradient(160deg,#082036 0%,#0b2942 45%,#0e3a5c 100%);
+  color:var(--ink);font-size:14px;min-height:100vh;min-height:100dvh}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-weight:800;transition:.2s;-webkit-tap-highlight-color:transparent}
+input,select,textarea{font-family:inherit;outline:none}
+.hidden{display:none!important}
+
+/* login */
+.loginwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login{width:400px;max-width:100%;background:rgba(255,255,255,.97);border-radius:26px;padding:34px 30px;
+  box-shadow:0 30px 80px rgba(0,0,0,.45);animation:pop .4s}
+@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.llogo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:6px}
+.llogo .ic{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#38bdf8,#0369a1);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(2,132,199,.4)}
+.llogo .ic svg{width:26px;height:26px;fill:#fff}
+.login h1{font-size:18px;color:var(--brand3);text-align:center;font-weight:900}
+.login p.sub{text-align:center;color:var(--sub);font-size:12px;margin:4px 0 22px}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:12px;font-weight:800;color:#475569;margin-bottom:6px}
+.fld input{width:100%;border:1.5px solid var(--line);background:var(--soft);border-radius:14px;padding:12px 14px;font-size:14px}
+.fld input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px rgba(14,165,233,.15)}
+.bigbtn{width:100%;padding:14px;font-size:15px;color:#fff;border-radius:14px;
+  background:linear-gradient(135deg,#0ea5e9,#0369a1);box-shadow:0 10px 22px rgba(2,105,161,.4);margin-top:6px}
+.bigbtn:hover{filter:brightness(1.07)}
+.lerr{color:var(--bad);font-size:12.5px;text-align:center;margin-top:10px;min-height:18px;font-weight:700}
+
+/* topbar */
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap;
+  background:rgba(8,32,54,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.08);color:#e0f2fe}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:15px;color:#fff}
+.brand .ic{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#38bdf8,#0369a1);display:flex;align-items:center;justify-content:center}
+.brand .ic svg{width:20px;height:20px;fill:#fff}
+.brand small{display:block;font-size:10.5px;font-weight:600;color:#7dd3fc}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:20px;font-size:12px;font-weight:800;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);white-space:nowrap}
+.pill .dot{width:8px;height:8px;border-radius:50%}
+.dot.ok{background:#4ade80;box-shadow:0 0 8px #4ade80}
+.dot.bad{background:#f87171}
+.ghost{background:rgba(255,255,255,.09);color:#e0f2fe;padding:8px 14px;font-size:12.5px;border:1px solid rgba(255,255,255,.15)}
+.ghost:hover{background:rgba(255,255,255,.18)}
+
+/* nav tabs */
+.tabs{display:flex;gap:6px;padding:14px 16px 0;max-width:1240px;margin:0 auto;overflow-x:auto}
+.tab{padding:10px 18px;border-radius:14px 14px 0 0;font-size:13.5px;font-weight:800;color:#bae6fd;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-bottom:none;white-space:nowrap}
+.tab.on{background:#f0f9ff;color:var(--brand2)}
+.wrap{max-width:1240px;margin:0 auto;padding:18px 16px 90px;background:transparent}
+.view{display:none}
+.view.on{display:block;animation:pop .3s}
+
+/* stat tiles */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.card{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 12px 34px rgba(0,0,0,.22)}
+.tile{position:relative;overflow:hidden}
+.tile::before{content:'';position:absolute;top:0;right:0;width:56px;height:56px;border-radius:0 0 0 56px;background:linear-gradient(135deg,#e0f2fe,#f0f9ff)}
+.tile .em{font-size:20px}
+.tile b{font-size:26px;display:block;color:var(--brand2);margin-top:4px;position:relative}
+.tile span{color:var(--sub);font-size:12px;font-weight:700;position:relative}
+.panelbox{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 12px 34px rgba(0,0,0,.22);margin-bottom:16px}
+.panelbox h2{font-size:14px;color:#334155;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.panelbox h2 .hdot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
+.flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.muted{color:#94a3b8;font-size:12px}
+
+/* table */
+.tablewrap{background:var(--card);border-radius:20px;box-shadow:0 12px 34px rgba(0,0,0,.22);overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th{background:#f0f9ff;text-align:right;padding:12px;font-size:12px;color:var(--brand2);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;font-weight:600}
+tr:hover td{background:#f8fafc}
+.badge{padding:4px 11px;border-radius:9px;font-size:11px;font-weight:800;display:inline-block;white-space:nowrap}
+.b-answered,.b-completed{background:#dcfce7;color:#166534}
+.b-waiting{background:#fef9c3;color:#854d0e}
+.b-missed{background:#fee2e2;color:#991b1b}
+.b-ring{background:#e0e2fe;color:#3730a3}
+.sbtn{padding:6px 12px;font-size:11.5px;border-radius:9px}
+.sbtn.gray{background:var(--soft);color:#475569;border:1px solid var(--line)}
+.sbtn.green{background:#dcfce7;color:#166534}
+.sbtn.red{background:#fee2e2;color:#991b1b}
+.sbtn.blue{background:#e0f2fe;color:#075985}
+
+/* bars chart */
+.bars{display:flex;align-items:flex-end;gap:10px;height:130px;margin-top:14px;padding:0 4px}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bars .b i{width:100%;max-width:44px;background:linear-gradient(180deg,#38bdf8,#0369a1);border-radius:8px 8px 3px 3px;
+  min-height:4px;transition:height .5s;box-shadow:0 4px 10px rgba(2,105,161,.3)}
+.bars .b em{font-style:normal;font-size:10px;color:#94a3b8;font-weight:700}
+.bars .b u{text-decoration:none;font-size:11px;color:#0369a1;font-weight:900}
+.liveq{display:flex;gap:10px;flex-wrap:wrap}
+.liveq .pill2{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:12px 18px;font-size:13px;font-weight:800;color:#334155}
+.liveq .pill2 b{color:var(--brand2);font-size:17px}
+audio{width:100%;height:40px}
+
+/* operators */
+.oprow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.oprow input{border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;background:var(--soft)}
+.oprow input:focus{border-color:var(--brand);background:#fff}
+
+/* settings */
+textarea#rdbc{width:100%;direction:ltr;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;border:1.5px solid var(--line);
+  border-radius:14px;padding:12px;background:#f8fafc;color:#0f172a;min-height:200px;resize:vertical}
+textarea#rdbc:focus{border-color:var(--brand);background:#fff}
+pre#rdbRes{background:#082036;color:#7dd3fc;border-radius:14px;padding:14px;margin-top:12px;font-size:11.5px;direction:ltr;overflow:auto;display:none;max-height:300px}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:rgba(4,20,36,.55);backdrop-filter:blur(6px)}
+.modal.on{display:flex}
+.mbox{width:440px;max-width:calc(100vw - 32px);background:#fff;border-radius:24px;padding:22px;box-shadow:0 40px 90px rgba(0,0,0,.5);animation:pop .3s}
+.mbox h3{font-size:14.5px;margin-bottom:12px;color:#334155;display:flex;align-items:center;gap:8px}
+.mbox h3 .hdot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(8px);background:#0f172a;color:#fff;
+  padding:11px 20px;border-radius:13px;font-size:13px;font-weight:700;z-index:99;opacity:0;transition:.25s;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div class="loginwrap" id="login">
+  <div class="login">
+    <div class="llogo"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg></div></div>
+    <h1>پنل مدیریت کال‌سنتر فیرزو</h1>
+    <p class="sub">گزارش تماس‌ها، مشتریان، اپراتورها و تنظیمات</p>
+    <div class="fld"><label>نام کاربری</label><input id="lu" autocomplete="username" placeholder="admin"></div>
+    <div class="fld"><label>رمز عبور</label><input id="lp" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="bigbtn" id="lbtn">ورود به پنل</button>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+  <div class="topbar">
+    <div class="brand">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg></div>
+      <div>کال‌سنتر فیرزو<small>پنل مدیریت</small></div>
+    </div>
+    <span class="spacer"></span>
+    <span class="pill" id="amip"><span class="dot warn" id="amid"></span><span id="amit">سرور تلفن</span></span>
+    <span class="pill">👤 <b id="uname">—</b></span>
+    <button class="ghost" onclick="logout()">خروج</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" data-v="dash">📊 داشبورد</button>
+    <button class="tab" data-v="calls">📞 تماس‌ها</button>
+    <button class="tab" data-v="cust">👥 مشتریان</button>
+    <button class="tab" data-v="ops" id="tabOps">🎧 اپراتورها</button>
+    <button class="tab" data-v="set" id="tabSet">⚙️ تنظیمات</button>
+  </div>
+
+  <div class="wrap">
+    <!-- DASHBOARD -->
+    <div class="view on" id="v-dash">
+      <div class="cards" id="statCards"></div>
+      <div class="panelbox"><h2><span class="hdot"></span>روند ۷ روز اخیر</h2><div class="bars" id="bars"></div></div>
+      <div class="panelbox"><h2><span class="hdot"></span>وضعیت زنده صف پشتیبانی</h2>
+        <div class="liveq">
+          <div class="pill2">در انتظار: <b id="lqWait">0</b></div>
+          <div class="pill2">اپراتور در صف: <b id="lqOnline">0</b></div>
+          <div class="pill2">طولانی‌ترین انتظار: <b id="lqLong">0s</b></div>
+        </div>
+        <div id="lqMembers" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <!-- CALLS -->
+    <div class="view" id="v-calls">
+      <div class="panelbox flex">
+        <input type="date" id="fdate" style="border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13px;background:var(--soft)">
+        <select id="fstat" style="border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13px;background:var(--soft)">
+          <option value="">همه وضعیت‌ها</option><option value="waiting">در انتظار</option>
+          <option value="answered">پاسخ داده شده</option><option value="completed">تکمیل شده</option>
+          <option value="missed">بی‌پاسخ</option>
+        </select>
+        <button class="sbtn blue" style="padding:9px 18px" onclick="loadCalls()">نمایش</button>
+        <span class="spacer"></span>
+        <button class="sbtn gray" style="padding:9px 18px" onclick="exportCsv()">⬇ دانلود CSV</button>
+      </div>
+      <div class="tablewrap"><table id="callsT"><thead><tr>
+        <th>زمان</th><th>تماس‌گیرنده</th><th>وضعیت</th><th>اپراتور</th><th>انتظار</th><th>مکالمه</th><th>امتیاز</th><th>ضبط</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="view" id="v-cust">
+      <div class="panelbox flex">
+        <input id="csearch" placeholder="جستجوی نام / تلفن / ایمیل…" style="flex:1;min-width:200px;border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;font-size:13px;background:var(--soft)">
+        <button class="sbtn blue" style="padding:10px 18px" onclick="loadCust()">جستجو</button>
+      </div>
+      <div class="tablewrap"><table id="custT"><thead><tr>
+        <th>نام</th><th>تلفن</th><th>ایمیل</th><th>IP</th><th>تعداد تماس</th><th>آخرین تماس</th><th>آخرین بازدید</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <!-- OPERATORS -->
+    <div class="view" id="v-ops">
+      <div class="panelbox">
+        <h2><span class="hdot"></span>افزودن کاربر جدید <span class="muted">(داخلی‌های آماده: 1000 تا 1005)</span></h2>
+        <div class="oprow">
+          <input id="ou" placeholder="نام کاربری" style="width:130px">
+          <input id="op" placeholder="رمز عبور" style="width:130px">
+          <input id="on" placeholder="نام و نام‌خانوادگی" style="width:170px">
+          <input id="oe" placeholder="داخلی (1002)" style="width:110px" dir="ltr">
+          <select id="or" style="border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;background:var(--soft)">
+            <option value="operator">اپراتور</option><option value="admin">ادمین</option>
+          </select>
+          <button class="sbtn green" style="padding:9px 18px" onclick="addOp()">+ افزودن</button>
+        </div>
+      </div>
+      <div class="tablewrap"><table id="opsT"><thead><tr>
+        <th>نام</th><th>نام کاربری</th><th>داخلی</th><th>نقش</th><th>فعال</th><th>عضویت در صف</th><th>تغییر رمز</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="view" id="v-set">
+      <div class="panelbox">
+        <h2><span class="hdot"></span>اتصال ریموت دیتابیس (CRM)</h2>
+        <p class="muted" style="margin-bottom:10px">درایور SQLite به‌صورت پیش‌فرض به دیتابیس سایت firuzo.online وصل است و فقط-خواندنی است. برای دیتابیس MySQL دیگر، درایور را mysql کنید.</p>
+        <textarea id="rdbc" rows="12"></textarea>
+        <div class="flex" style="margin-top:12px">
+          <button class="sbtn green" style="padding:10px 20px" onclick="saveRdb()">💾 ذخیره تنظیمات</button>
+          <input id="testPhone" placeholder="تلفن برای تست اتصال" dir="ltr" style="border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13px;background:var(--soft);width:200px">
+          <button class="sbtn blue" style="padding:10px 20px" onclick="testRdb()">🔌 تست اتصال</button>
+        </div>
+        <pre id="rdbRes"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- recording modal -->
+<div class="modal" id="recModal">
+  <div class="mbox">
+    <h3><span class="hdot"></span>پخش ضبط تماس</h3>
+    <audio id="recAudio" controls style="width:100%"></audio>
+    <div class="flex" style="margin-top:14px;justify-content:flex-end">
+      <button class="sbtn gray" style="padding:9px 18px" onclick="closeRec()">بستن</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var T = localStorage.getItem("cc_token") || "";
+var sock = null, callsCache = [];
+
+function $(id){ return document.getElementById(id); }
+function toast(m){ var t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("on")},2500); }
+async function api(path, opts){
+  opts = opts||{};
+  opts.headers = Object.assign({"Authorization":"Bearer "+T,"Content-Type":"application/json"}, opts.headers||{});
+  var r = await fetch(path, opts);
+  if(r.status===401){ logout(); throw new Error("unauthorized"); }
+  return r.json();
+}
+function logout(){ localStorage.removeItem("cc_token"); T=""; location.reload(); }
+
+/* ---------- login ---------- */
+$("lbtn").addEventListener("click", function(){
+  $("lbtn").disabled = true; $("lerr").textContent = "";
+  fetch("/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username:$("lu").value.trim(),password:$("lp").value})})
+  .then(function(r){ return r.json(); }).then(function(d){
+    if(d.token){ T=d.token; localStorage.setItem("cc_token",T); boot(); }
+    else $("lerr").textContent = d.error||"خطا";
+  }).catch(function(){ $("lerr").textContent="خطای شبکه"; });
+  $("lbtn").disabled = false;
+});
+
+/* ---------- boot ---------- */
+async function boot(){
+  var me = await api("/api/auth/me").catch(function(){ return null; });
+  if(!me || !me.id) return;
+  $("login").classList.add("hidden"); $("app").classList.remove("hidden");
+  $("uname").textContent = me.name;
+  if(me.role!=="admin"){ $("tabOps").classList.add("hidden"); $("tabSet").classList.add("hidden"); }
+  loadStats(); loadCalls(); loadOps(); loadRdb(); loadCust(); connectWs();
+  setInterval(loadStats, 30000);
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll(".tab").forEach(function(t){
+  t.addEventListener("click", function(){
+    document.querySelectorAll(".tab").forEach(function(x){ x.classList.toggle("on", x===t); });
+    document.querySelectorAll(".view").forEach(function(v){ v.classList.remove("on"); });
+    $("v-"+t.dataset.v).classList.add("on");
+    if(t.dataset.v==="calls") loadCalls();
+    if(t.dataset.v==="cust") loadCust();
+    if(t.dataset.v==="ops") loadOps();
+  });
+});
+
+/* ---------- socket live ---------- */
+function connectWs(){
+  sock = io({auth:{token:T}});
+  sock.on("ami:status", function(d){
+    $("amid").className = "dot "+(d.connected?"ok":"bad");
+    $("amit").textContent = d.connected ? "سرور تلفن متصل" : "سرور تلفن قطع!";
+  });
+  sock.on("queue:status", function(d){
+    $("lqWait").textContent = d.waiting;
+    $("lqOnline").textContent = d.online;
+    $("lqLong").textContent = d.longest_wait+"s";
+  });
+  sock.on("queue:members", function(d){
+    var ms = (d&&d.members)||[];
+    $("lqMembers").innerHTML = ms.length ? '<div class="flex">'+ms.map(function(m){
+      return '<span class="badge '+(m.in_queue?'b-answered':'b-missed')+'">'+m.name+(m.in_queue?' ✓':'')+'</span>';
+    }).join("")+'</div>' : '';
+  });
+  sock.on("call:new", function(){ toast("☎ تماس جدید ثبت شد"); loadStats(); if(isVisible("calls")) loadCalls(); });
+  sock.on("call:update", function(d){
+    if(d.status){ loadStats(); if(isVisible("calls")) loadCalls(); }
+  });
+}
+function isVisible(v){ var el=$("v-"+v); return el && el.classList.contains("on"); }
+
+/* ---------- dashboard ---------- */
+function card(l,v,em){ return '<div class="card tile"><div class="em">'+em+'</div><span>'+l+'</span><b>'+v+'</b></div>'; }
+async function loadStats(){
+  var d = await api("/api/stats");
+  var t = d.today||{};
+  $("statCards").innerHTML =
+    card("تماس امروز", t.total||0,"☎")+card("پاسخ داده شده", t.answered||0,"✓")+card("بی‌پاسخ", t.missed||0,"✕")+
+    card("میانگین انتظار", (t.avg_wait||0)+" ثانیه","⏱")+card("میانگین امتیاز", (t.avg_rating||0),"★");
+  var mx = Math.max(1, ...(d.last7||[]).map(function(x){ return x.c; }));
+  $("bars").innerHTML = (d.last7||[]).map(function(x){
+    var day = String(x.d instanceof Date ? x.d.toISOString() : x.d).slice(5,10);
+    return '<div class="b"><u>'+(x.c||0)+'</u><i style="height:'+Math.max(4,(x.c/mx*80))+'%"></i><em>'+day+'</em></div>';
+  }).join("") || '<div class="muted">داده‌ای نیست</div>';
+}
+
+/* ---------- calls ---------- */
+function stBadge(s){var m={waiting:"در انتظار",answered:"پاسخ داده شد",completed:"تکمیل شد",missed:"بی‌پاسخ",ringing:"زنگ"};
+  return '<span class="badge b-'+s+'">'+(m[s]||s)+'</span>'}
+async function loadCalls(){
+  var p = new URLSearchParams({date:$("fdate").value||"",status:$("fstat").value||""});
+  var d = await api("/api/calls?"+p);
+  callsCache = d||[];
+  document.querySelector("#callsT tbody").innerHTML = callsCache.map(function(c){
+    var rec = c.recording_path
+      ? '<button class="sbtn blue" onclick="playRec(\''+c.unique_id+'\')">▶ پخش</button>' : '<span class="muted">—</span>';
+    return "<tr><td>"+(c.started_at||"").slice(5,16)+"</td>"
+      +"<td>"+(c.visitor_name||"ناشناس")+"<br><span class='muted' dir='ltr'>"+(c.visitor_phone||"")+"</span></td>"
+      +"<td>"+stBadge(c.status)+"</td><td>"+(c.operator_ext||"—")+"</td>"
+      +"<td>"+(c.wait_sec||0)+"s</td><td>"+(c.duration_sec||0)+"s</td>"
+      +"<td>"+(c.survey_rating?"<span style='color:#f59e0b'>"+"★".repeat(c.survey_rating)+"</span>":"—")+"</td>"
+      +"<td>"+rec+"</td></tr>";
+  }).join("") || "<tr><td colspan=8 class='muted' style='text-align:center;padding:30px'>تماسی ثبت نشده</td></tr>";
+}
+function playRec(id){
+  $("recAudio").src = "/api/records/"+id;
+  $("recModal").classList.add("on");
+  $("recAudio").play().catch(function(){});
+}
+function closeRec(){ $("recModal").classList.remove("on"); $("recAudio").pause(); }
+$("recModal").addEventListener("click", function(e){ if(e.target===this) closeRec(); });
+function exportCsv(){
+  var rows=[["زمان","نام","تلفن","وضعیت","اپراتور","انتظار","مکالمه","امتیاز"]];
+  callsCache.forEach(function(c){ rows.push([c.started_at,c.visitor_name,c.visitor_phone,c.status,c.operator_ext,c.wait_sec,c.duration_sec,c.survey_rating]); });
+  var csv = "\ufeff"+rows.map(function(r){ return r.join(","); }).join("\n");
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download="calls.csv"; a.click();
+}
+
+/* ---------- customers ---------- */
+async function loadCust(){
+  var d = await api("/api/customers?s="+encodeURIComponent($("csearch").value||""));
+  document.querySelector("#custT tbody").innerHTML = (d||[]).map(function(c){
+    return "<tr><td>"+(c.name||"—")+"</td><td dir='ltr'>"+(c.phone||"—")+"</td><td dir='ltr'>"+(c.email||"—")+"</td>"
+      +"<td dir='ltr'>"+(c.ip||"—")+"</td><td>"+(c.call_count||0)+"</td>"
+      +"<td class='muted'>"+(String(c.last_call||"").slice(5,16)||"—")+"</td><td class='muted'>"+String(c.last_seen||"").slice(5,16)+"</td></tr>";
+  }).join("") || "<tr><td colspan=7 class='muted' style='text-align:center;padding:30px'>مشتری‌ای یافت نشد</td></tr>";
+}
+$("csearch").addEventListener("keydown", function(e){ if(e.key==="Enter") loadCust(); });
+
+/* ---------- operators ---------- */
+async function loadOps(){
+  var d = await api("/api/operators");
+  document.querySelector("#opsT tbody").innerHTML = (d||[]).map(function(o){
+    return "<tr><td>"+o.name+"</td><td dir='ltr'>"+o.username+"</td><td>"+(o.sip_ext||"—")+"</td><td>"+(o.role==="admin"?"ادمین":"اپراتور")+"</td>"
+      +"<td><button class='sbtn "+(o.active?"green":"red")+"' onclick='toggleOp("+o.id+","+!o.active+")'>"+(o.active?"فعال":"غیرفعال")+"</button></td>"
+      +"<td>"+(o.sip_ext?'<button class="sbtn gray" onclick="queueToggle(\''+o.sip_ext+'\')">تغییر وضعیت صف</button>':"—")+"</td>"
+      +"<td class='oprow'><input type='password' placeholder='رمز جدید' style='width:100px' id='np"+o.id+"'><button class='sbtn gray' onclick='setPass("+o.id+")'>ثبت</button></td></tr>";
+  }).join("");
+}
+async function toggleOp(id, active){ await api("/api/operators/"+id,{method:"POST",body:JSON.stringify({active:active})}); loadOps(); toast("ثبت شد"); }
+async function setPass(id){ var p=$("np"+id).value; if(!p)return; await api("/api/operators/"+id,{method:"POST",body:JSON.stringify({password:p})}); toast("رمز تغییر کرد"); }
+async function queueToggle(ext){ await api("/api/queue/member",{method:"POST",body:JSON.stringify({ext:ext,action:"toggle"})}); toast("وضعیت صف تغییر کرد"); loadStats(); }
+async function addOp(){
+  var r = await api("/api/operators",{method:"POST",body:JSON.stringify({username:$("ou").value.trim(),password:$("op").value,name:$("on").value.trim(),role:$("or").value,sip_ext:$("oe").value.trim()})});
+  if(r.ok){ toast("کاربر اضافه شد ✓"); $("ou").value=$("op").value=$("on").value=$("oe").value=""; loadOps(); }
+  else toast(r.error||"خطا");
+}
+
+/* ---------- settings ---------- */
+async function loadRdb(){ var s = await api("/api/settings"); $("rdbc").value = s.remote_db||""; }
+async function saveRdb(){
+  var r = await api("/api/settings/remote_db",{method:"POST",headers:{"Content-Type":"text/plain"},body:$("rdbc").value});
+  if(r.ok) toast("تنظیمات ذخیره شد ✓"); else toast(r.error||"خطا");
+}
+async function testRdb(){
+  var phone = $("testPhone").value;
+  var res = await api("/api/crm/lookup?phone="+encodeURIComponent(phone||""));
+  $("rdbRes").style.display="block"; $("rdbRes").textContent = JSON.stringify(res,null,2);
+}
+
+/* ---------- auto start ---------- */
+(function(){
+  if(!T) return;
+  fetch("/api/auth/me",{headers:{"Authorization":"Bearer "+T}})
+    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+    .then(function(u){ if(u&&u.id) boot(); else { localStorage.removeItem("cc_token"); } })
+    .catch(function(){ localStorage.removeItem("cc_token"); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+name: "05 · Installer & Verifier"
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["installer/**", ".github/workflows/05-installer.yml"]
+  pull_request:
+    paths: ["installer/**"]
+  workflow_dispatch:
+
+jobs:
+  installer:
+    name: shellcheck + bash -n + repo selftest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: bash syntax
+        run: |
+          bash -n installer/install.sh
+          bash -n installer/check.sh
+          echo "bash -n OK"
+
+      - name: shellcheck (warnings+)
+        run: |
+          shellcheck --version
+          shellcheck -S warning installer/install.sh installer/check.sh
+
+      - name: Repo selftest (the verifier validates the whole package)
+        run: installer/check.sh --selftest
+
+      - name: Installer dry render (templates -> /tmp, no root changes)
+        run: |
+          set -e
+          R() { # render like install.sh does
+            sed -e "s/__VISITOR_PASS__/testpass/g" \
+                -e "s/__OP_PASS_1000__/t0/g" -e "s/__OP_PASS_1001__/t1/g" \
+                -e "s/__OP_PASS_1002__/t2/g" -e "s/__OP_PASS_1003__/t3/g" \
+                -e "s/__OP_PASS_1004__/t4/g" -e "s/__OP_PASS_1005__/t5/g" \
+                -e "s|__CCAPI__|http://192.0.2.1:3006/api/internal|g" \
+                -e "s/__CC_DOMAIN__/call.example.com/g" \
+                -e "s/__APP_HOST__/127.0.0.1/g" -e "s/__APP_PORT__/3006/g" \
+                -e "s/__PBX_HOST__/192.0.2.2/g" \
+                -e "s/__CERT__/c.pem/g" -e "s/__KEY__/k.pem/g" \
+                -e "s/__PUBLIC_IP__/203.0.113.1/g" -e "s/__LAN_IP__/192.0.2.1/g" \
+                -e "s/__TURN_USER__/u/g" -e "s/__TURN_PASS__/p/g" \
+                -e "s/__REALM__/example.com/g" \
+                -e "s/__AMI_USER__/callcenter/g" -e "s/__AMI_PASS__/p/g" \
+                "$1" > "/tmp/$(basename "$1")"
+          }
+          for t in asterisk/conf/pjsip.conf.tmpl asterisk/conf/extensions.conf.tmpl \
+                   asterisk/conf/manager.conf.tmpl nginx/call-firuzo.conf.tmpl \
+                   nginx/turnserver.conf.tmpl; do R "$t"; done
+          ! grep -l "__[A-Z_]*__" /tmp/*.tmpl /tmp/*.conf 2>/dev/null || true
+          grep -c "" /tmp/pjsip.conf.tmpl
+          echo "render OK — no placeholders left behind"

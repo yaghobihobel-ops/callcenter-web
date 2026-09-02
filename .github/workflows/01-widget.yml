@@ -1,0 +1,43 @@
+name: "01 · Widget (website call button)"
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["backend/public/widget.js", "widget/**", ".github/workflows/01-widget.yml"]
+  pull_request:
+    paths: ["backend/public/widget.js", "widget/**"]
+  workflow_dispatch:
+
+jobs:
+  widget:
+    name: Widget lint / size / hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Syntax check
+        run: node --check backend/public/widget.js
+
+      - name: Required hooks & API present
+        run: |
+          W=backend/public/widget.js
+          grep -q "data-fz-call" "$W"   # hooks onto existing contact buttons
+          grep -q "FiruzoCall"  "$W"    # window JS API
+          grep -q "tel:"        "$W"    # legacy fallback
+          grep -qE "getUserMedia|mediaDevices" "$W"  # microphone permission flow
+
+      - name: Size budget (keep it CDN/light)
+        run: |
+          SIZE=$(wc -c < backend/public/widget.js)
+          echo "widget.js = ${SIZE} bytes"
+          [ "$SIZE" -lt 61440 ] || { echo "::error::widget.js exceeds 60KB"; exit 1; }
+
+      - name: Upload widget artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: widget-js
+          path: backend/public/widget.js

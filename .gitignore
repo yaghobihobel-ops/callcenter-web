@@ -1,0 +1,22 @@
+# secrets & environment
+.env
+*.key
+*.crt
+*.pem
+secrets/
+cc_rsa*
+generated-creds*
+
+# node
+node_modules/
+package-lock.bak
+
+# runtime artifacts
+recordings/
+*.log
+*.db
+*.sqlite
+
+# OS / editor
+.DS_Store
+Thumbs.db

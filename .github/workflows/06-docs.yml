@@ -1,0 +1,50 @@
+name: "06 · Docs"
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["**.md", "docs/**", ".github/workflows/06-docs.yml"]
+  pull_request:
+    paths: ["**.md", "docs/**"]
+  workflow_dispatch:
+
+jobs:
+  docs:
+    name: Docs present & links intact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Required documentation files
+        run: |
+          for f in README.md README.fa.md CHANGELOG.md VERSION \
+                   docs/USER-MANUAL-FA.md docs/INSTALL-FA.md docs/INTEGRATION-FA.md \
+                   docs/ARCHITECTURE.md docs/TROUBLESHOOTING-FA.md; do
+            [ -s "$f" ] || { echo "::error::missing or empty: $f"; exit 1; }
+            echo "OK  $f ($(wc -l < "$f") lines)"
+          done
+
+      - name: Relative doc links resolve
+        run: |
+          python3 - <<'PY'
+          import re, sys
+          from pathlib import Path
+          bad = []
+          for md in list(Path(".").rglob("*.md")):
+              if ".git" in str(md): continue
+              text = md.read_text(encoding="utf-8", errors="replace")
+              for target in re.findall(r"\]\((?!https?://|mailto:|#)([^)#]+)", text):
+                  resolved = (md.parent / target).resolve()
+                  if not resolved.exists():
+                      bad.append(f"{md} -> {target}")
+          if bad:
+              print("\n".join(bad))
+              sys.exit(1)
+          print("all relative links OK")
+          PY
+
+      - name: Version file matches changelog
+        run: |
+          V=$(cat VERSION | tr -d '[:space:]')
+          grep -q "$V" CHANGELOG.md || { echo "::error::VERSION $V not in CHANGELOG.md"; exit 1; }
+          echo "version $V consistent"

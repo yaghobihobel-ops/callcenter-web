@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c4a6e">
+<title>کنسول اپراتور — کال‌سنتر فیرزو</title>
+<style>
+:root{
+  --bg:#0b2942; --bg2:#0e3a5c; --card:#ffffff; --ink:#0f172a; --sub:#64748b;
+  --brand:#0ea5e9; --brand2:#0369a1; --brand3:#0c4a6e;
+  --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626; --soft:#f1f5f9; --line:#e2e8f0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Vazirmatn,'Segoe UI',Tahoma,-apple-system,sans-serif;background:
+  radial-gradient(1200px 500px at 85% -10%, rgba(14,165,233,.25), transparent 60%),
+  radial-gradient(900px 420px at 0% 110%, rgba(2,132,199,.18), transparent 55%),
+  linear-gradient(160deg,#082036 0%,#0b2942 45%,#0e3a5c 100%);
+  color:var(--ink);font-size:14px;min-height:100vh;min-height:100dvh}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-weight:800;transition:.2s;-webkit-tap-highlight-color:transparent}
+input,textarea{font-family:inherit;outline:none}
+.hidden{display:none!important}
+
+/* ============ LOGIN ============ */
+.loginwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login{width:400px;max-width:100%;background:rgba(255,255,255,.97);border-radius:26px;padding:34px 30px;
+  box-shadow:0 30px 80px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.6);animation:pop .4s}
+@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.llogo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:6px}
+.llogo .ic{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#38bdf8,#0369a1);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(2,132,199,.4)}
+.llogo .ic svg{width:26px;height:26px;fill:#fff}
+.login h1{font-size:18px;color:var(--brand3);text-align:center;font-weight:900}
+.login p.sub{text-align:center;color:var(--sub);font-size:12px;margin:4px 0 22px}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:12px;font-weight:800;color:#475569;margin-bottom:6px}
+.fld input{width:100%;border:1.5px solid var(--line);background:var(--soft);border-radius:14px;padding:12px 14px;font-size:14px;transition:.2s}
+.fld input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px rgba(14,165,233,.15)}
+.bigbtn{width:100%;padding:14px;font-size:15px;color:#fff;border-radius:14px;
+  background:linear-gradient(135deg,#0ea5e9,#0369a1);box-shadow:0 10px 22px rgba(2,105,161,.4);margin-top:6px}
+.bigbtn:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.lerr{color:var(--bad);font-size:12.5px;text-align:center;margin-top:10px;min-height:18px;font-weight:700}
+
+/* ============ TOPBAR ============ */
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;padding:12px 18px;
+  background:rgba(8,32,54,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.08);color:#e0f2fe}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:15px;color:#fff}
+.brand .ic{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#38bdf8,#0369a1);display:flex;align-items:center;justify-content:center}
+.brand .ic svg{width:20px;height:20px;fill:#fff}
+.brand small{display:block;font-size:10.5px;font-weight:600;color:#7dd3fc}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:20px;font-size:12px;font-weight:800;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#e0f2fe;white-space:nowrap}
+.pill .dot{width:8px;height:8px;border-radius:50%}
+.dot.ok{background:#4ade80;box-shadow:0 0 8px #4ade80}
+.dot.bad{background:#f87171}
+.dot.warn{background:#fbbf24}
+.clock{font-variant-numeric:tabular-nums;font-size:13px;font-weight:800;color:#bae6fd}
+.ghost{background:rgba(255,255,255,.09);color:#e0f2fe;padding:8px 14px;font-size:12.5px;border:1px solid rgba(255,255,255,.15)}
+.ghost:hover{background:rgba(255,255,255,.18)}
+
+/* ============ LAYOUT ============ */
+.wrap{max-width:1240px;margin:20px auto;padding:0 16px 90px;display:grid;grid-template-columns:360px 1fr;gap:18px}
+@media(max-width:960px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 12px 34px rgba(0,0,0,.22);margin-bottom:16px;border:1px solid rgba(255,255,255,.5)}
+.card h3{font-size:13.5px;color:#334155;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3 .hdot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
+
+/* status */
+.statusrow{display:flex;gap:10px}
+.stbtn{flex:1;padding:15px 10px;font-size:14.5px;border-radius:16px;display:flex;flex-direction:column;align-items:center;gap:6px;border:2px solid var(--line);background:var(--soft);color:#64748b}
+.stbtn .em{font-size:20px}
+.stbtn.on-ready{border-color:#22c55e;background:#f0fdf4;color:#15803d;box-shadow:0 8px 20px rgba(34,197,94,.25)}
+.stbtn.on-break{border-color:#f59e0b;background:#fffbeb;color:#b45309}
+.sipstat{font-size:12px;color:var(--sub);text-align:center;margin-top:10px;font-weight:700}
+
+/* softphone */
+.ph-state{text-align:center;padding:14px 10px;border-radius:16px;background:var(--soft);margin-bottom:12px}
+.ph-state .big{font-size:15.5px;font-weight:900;color:#334155}
+.ph-state .sub{font-size:11.5px;color:var(--sub);margin-top:3px}
+.ph-state.ring{background:linear-gradient(135deg,#dbeafe,#e0f2fe);animation:ringbg 1s infinite alternate}
+@keyframes ringbg{from{box-shadow:0 0 0 0 rgba(14,165,233,.35)}to{box-shadow:0 0 0 14px rgba(14,165,233,0)}}
+.ph-state.live{background:linear-gradient(135deg,#dcfce7,#f0fdf4)}
+.timer{font-size:30px;font-weight:900;color:var(--brand2);font-variant-numeric:tabular-nums;direction:ltr;margin-top:4px;letter-spacing:1px}
+.row{display:flex;gap:9px;margin-top:4px}
+.row>*{flex:1}
+.btn{padding:12px;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn svg{width:16px;height:16px;fill:currentColor}
+.btn.gray{background:var(--soft);color:#475569;border:1px solid var(--line)}
+.btn.gray:hover{background:#e2e8f0}
+.btn.green{background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;box-shadow:0 8px 18px rgba(21,128,61,.35)}
+.btn.red{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;box-shadow:0 8px 18px rgba(185,28,28,.35)}
+.btn.blue{background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* popup caller */
+.caller{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.avatar{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,#38bdf8,#0369a1);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;flex-shrink:0}
+.caller .who b{font-size:16.5px;display:block}
+.caller .who span{font-size:12.5px;color:var(--sub);direction:ltr;display:inline-block}
+.kv{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.tag{background:#e0f2fe;color:#075985;border-radius:9px;padding:5px 11px;font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:5px}
+.tag.dark{background:#f1f5f9;color:#475569}
+.tag.gold{background:#fef3c7;color:#92400e}
+.crmsec{background:var(--soft);border-radius:14px;padding:12px 14px;margin-bottom:10px;font-size:12.5px}
+.crmsec b.t{display:block;font-size:12px;color:var(--brand2);margin-bottom:8px}
+.mini-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.mini-table th{text-align:right;color:#94a3b8;font-weight:700;padding:4px 6px;border-bottom:1px solid var(--line)}
+.mini-table td{padding:6px;border-bottom:1px solid #f1f5f9;font-weight:600;color:#334155}
+.pastcall{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px dashed #e2e8f0;font-size:12px;gap:8px}
+.pastcall:last-child{border-bottom:none}
+.stb{padding:2px 9px;border-radius:8px;font-size:10.5px;font-weight:800}
+.stb.completed,.stb.answered{background:#dcfce7;color:#166534}
+.stb.waiting{background:#fef9c3;color:#854d0e}
+.stb.missed{background:#fee2e2;color:#991b1b}
+.muted{color:#94a3b8;font-size:12px}
+textarea#notes{width:100%;border:1.5px solid var(--line);border-radius:13px;padding:11px 13px;font-size:13px;min-height:70px;resize:vertical;background:var(--soft)}
+textarea#notes:focus{border-color:var(--brand);background:#fff}
+.savedflash{color:var(--ok);font-size:11.5px;font-weight:800;margin-right:8px;display:none}
+
+/* live queue side */
+.qrow{display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px dashed #e2e8f0;font-size:12.5px}
+.qrow:last-child{border:none}
+.qrow .nm{font-weight:800}
+.qnum{font-weight:900;color:var(--brand2);font-size:15px;font-variant-numeric:tabular-nums}
+#log{font-size:11px;color:#64748b;max-height:90px;overflow:auto;direction:ltr;text-align:left;background:var(--soft);border-radius:12px;padding:9px 11px}
+
+/* incoming modal */
+.incoming{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:rgba(4,20,36,.55);backdrop-filter:blur(6px)}
+.incoming.on{display:flex}
+.imodal{width:380px;max-width:calc(100vw - 32px);background:#fff;border-radius:26px;padding:28px 24px;text-align:center;
+  box-shadow:0 40px 90px rgba(0,0,0,.5);animation:pop .3s;position:relative;overflow:hidden}
+.imodal::before{content:'';position:absolute;inset:-60% 0 auto;height:160px;background:linear-gradient(135deg,#0ea5e9,#0369a1);border-radius:0 0 50% 50%/0 0 100px 100px}
+.imodal .ic{position:relative;width:84px;height:84px;margin:14px auto 14px;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#0369a1);
+  display:flex;align-items:center;justify-content:center;animation:shake 1s infinite}
+.imodal .ic svg{width:38px;height:38px;fill:#fff}
+@keyframes shake{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+.imodal h2{font-size:17px;font-weight:900;position:relative}
+.imodal .p{font-size:20px;font-weight:900;color:var(--brand2);direction:ltr;margin:6px 0 2px;position:relative}
+.imodal .m{font-size:12px;color:var(--sub);position:relative;margin-bottom:18px}
+.imodal .row{margin-top:6px}
+.imodal .btn{padding:15px;font-size:15px;border-radius:16px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(8px);background:#0f172a;color:#fff;
+  padding:11px 20px;border-radius:13px;font-size:13px;font-weight:700;z-index:99;opacity:0;transition:.25s;pointer-events:none;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.toast.on{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div class="loginwrap" id="login">
+  <div class="login">
+    <div class="llogo"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm7 11a7 7 0 0 1-6 6.92V21h2a1 1 0 0 1 0 2H9a1 1 0 0 1 0-2h2v-2.08A7 7 0 0 1 5 12a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 0 1 2 0z"/></svg></div></div>
+    <h1>کنسول اپراتور فیرزو</h1>
+    <p class="sub">ورود به میز تلفن — تماس‌های وب‌سایت را پاسخ دهید</p>
+    <div class="fld"><label>نام کاربری</label><input id="lu" autocomplete="username" placeholder="operator"></div>
+    <div class="fld"><label>رمز عبور</label><input id="lp" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="bigbtn" id="lbtn">ورود و آماده‌سازی تلفن</button>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+  <div class="topbar">
+    <div class="brand">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg></div>
+      <div>کنسول اپراتور<small id="me">—</small></div>
+    </div>
+    <span class="spacer"></span>
+    <span class="pill" id="amip"><span class="dot warn" id="amid"></span><span id="amit">سرور تلفن</span></span>
+    <span class="pill">در انتظار: <b id="qwait">0</b></span>
+    <span class="pill">آنلاین: <b id="qonline">0</b></span>
+    <span class="clock" id="clock">--:--</span>
+    <button class="ghost" id="logout">خروج</button>
+  </div>
+
+  <div class="wrap">
+    <!-- right column (start in RTL) -->
+    <div>
+      <div class="card">
+        <h3><span class="hdot"></span>وضعیت من</h3>
+        <div class="statusrow">
+          <button class="stbtn on-ready" id="btnReady"><span class="em">🎧</span><span>آماده پاسخ</span></button>
+          <button class="stbtn" id="btnBreak"><span class="em">☕</span><span>استراحت</span></button>
+        </div>
+        <div class="sipstat" id="phstat">در حال اتصال به سرور تلفن…</div>
+      </div>
+
+      <div class="card">
+        <h3><span class="hdot"></span>تلفن نرم‌افزاری <span class="muted" id="ext"></span></h3>
+        <div class="ph-state" id="phstate">
+          <div class="big" id="phbig">آماده</div>
+          <div class="sub" id="phsub">منتظر تماس ورودی…</div>
+          <div class="timer hidden" id="tmr">0:00</div>
+        </div>
+        <div class="row">
+          <button class="btn gray" id="muteBtn">🎤 میکروفون</button>
+          <button class="btn red hidden" id="endBtn">✕ پایان تماس</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><span class="hdot"></span>صف پشتیبانی (زنده)</h3>
+        <div id="qboard"><div class="muted">صف خلوت است ✓</div></div>
+      </div>
+
+      <div class="card">
+        <h3><span class="hdot"></span>رویدادها</h3>
+        <div id="log"></div>
+      </div>
+    </div>
+
+    <!-- left column -->
+    <div>
+      <div class="card" id="popCard">
+        <h3><span class="hdot"></span>اطلاعات تماس‌گیرنده</h3>
+        <div id="pop">
+          <div class="muted" style="padding:30px 10px;text-align:center">
+            <div style="font-size:34px;margin-bottom:10px">📋</div>
+            هنگام تماس بعدی، اطلاعات مشتری و سفارشات او به‌صورت خودکار اینجا نمایش داده می‌شود
+          </div>
+        </div>
+      </div>
+
+      <div class="card hidden" id="noteCard">
+        <h3><span class="hdot"></span>یادداشت تماس جاری</h3>
+        <textarea id="notes" placeholder="موضوع تماس، اقدام انجام‌شده، پیگیری بعدی…"></textarea>
+        <div class="row" style="margin-top:10px">
+          <button class="btn blue" id="saveNote">💾 ذخیره یادداشت</button>
+          <span class="savedflash" id="savedFlash">✓ ذخیره شد</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><span class="hdot"></span>سابقه تماس‌های این مشتری</h3>
+        <div id="past"><div class="muted">—</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ INCOMING MODAL ============ -->
+<div class="incoming" id="incoming">
+  <div class="imodal">
+    <div class="ic"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg></div>
+    <h2 id="incName">تماس ورودی</h2>
+    <div class="p" id="incPhone">—</div>
+    <div class="m" id="incMeta">در حال زنگ خوردن…</div>
+    <div class="row">
+      <button class="btn green" id="acceptBtn">✓ پاسخ</button>
+      <button class="btn red" id="declineBtn">✕ رد تماس</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+/* =================== operator console v2 =================== */
+var T = localStorage.getItem("cc_token") || "";
+var ME = null, sock = null, ua = null, reg = null, session = null;
+var muted = false, tmrI = null, ringI = null, currentCallId = null, ready = true;
+var pendingInvite = null;
+var regBusy = false, regEverOk = false;
+
+function $(id){ return document.getElementById(id); }
+function show(id, on){ $(id).classList.toggle("hidden", !on); }
+function toast(m, ms){ var t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("on")}, ms||2600); }
+function log(m){ var l=$("log"); l.innerHTML = new Date().toLocaleTimeString("fa-IR")+" — "+m+"<br>"+l.innerHTML; }
+
+async function api(path, opts){
+  opts = opts || {};
+  opts.headers = Object.assign({"Authorization":"Bearer "+T,"Content-Type":"application/json"}, opts.headers||{});
+  var r = await fetch(path, opts);
+  if(r.status===401){ doLogout(); throw new Error("unauthorized"); }
+  return r.json();
+}
+
+/* ---------- login ---------- */
+$("lbtn").addEventListener("click", doLogin);
+$("lp").addEventListener("keydown", function(e){ if(e.key==="Enter") doLogin(); });
+async function doLogin(){
+  $("lbtn").disabled = true; $("lerr").textContent = "";
+  try{
+    var r = await fetch("/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username:$("lu").value.trim(),password:$("lp").value})});
+    var d = await r.json();
+    if(d.token){ T=d.token; ME=d.user; localStorage.setItem("cc_token",T); boot(); }
+    else $("lerr").textContent = d.error || "خطا";
+  }catch(e){ $("lerr").textContent = "خطای شبکه"; }
+  $("lbtn").disabled = false;
+}
+function doLogout(){ localStorage.removeItem("cc_token"); try{ if(ua) ua.stop(); }catch(e){} location.reload(); }
+$("logout").addEventListener("click", doLogout);
+
+/* ---------- boot ---------- */
+async function boot(){
+  show("login", false); show("app", true);
+  $("me").textContent = ME.name + " — داخلی " + ME.ext;
+  $("ext").textContent = "("+ME.ext+")";
+  connectSocket(); loadSip();
+  setInterval(tickClock, 1000); tickClock();
+  try{
+    var members = await api("/api/queue/members");
+    var me = (members||[]).find(function(m){ return String(m.sip_ext)===String(ME.ext); });
+    var inside = !!(me && me.in_queue);
+    /* login = ready: auto-join the queue if not a member yet */
+    setReady(inside, !inside);
+  }catch(e){ setReady(true, true); }
+}
+function tickClock(){ $("clock").textContent = new Date().toLocaleTimeString("fa-IR",{hour:"2-digit",minute:"2-digit"}); }
+
+/* ---------- socket ---------- */
+function connectSocket(){
+  sock = io({auth:{token:T}});
+  sock.on("connect", function(){ log("socket connected"); });
+  sock.on("queue:status", function(d){ $("qwait").textContent=d.waiting; $("qonline").textContent=d.online; });
+  sock.on("ami:status", function(d){
+    $("amid").className = "dot "+(d.connected?"ok":"bad");
+    $("amit").textContent = d.connected ? "سرور تلفن متصل" : "سرور تلفن قطع!";
+  });
+  sock.on("pop:data", showPop);
+  sock.on("call:incoming", function(){ log("☎ رینگ ورودی"); });
+  sock.on("call:ended", function(){ toast("تماس توسط مشتری پایان یافت"); onSessionOver(); });
+  sock.on("queue:members", function(d){ renderQueueBoard(d); });
+}
+
+/* ---------- queue board ---------- */
+function renderQueueBoard(d){
+  var box = $("qboard");
+  var members = (d&&d.members)||[];
+  if(!members.length){ box.innerHTML = '<div class="muted">اپراتوری عضو صف نیست</div>'; return; }
+  box.innerHTML = members.map(function(m){
+    return '<div class="qrow"><span class="nm">'+(m.name||m.username)+'</span>'
+      + (m.in_queue ? '<span class="stb answered">در صف ✓</span>' : '<span class="stb missed">خارج صف</span>')
+      + '</div>';
+  }).join("");
+}
+
+/* ---------- ready / break ---------- */
+$("btnReady").addEventListener("click", function(){ setReady(true, true); });
+$("btnBreak").addEventListener("click", function(){ setReady(false, true); });
+async function setReady(v, push){
+  ready = v;
+  $("btnReady").classList.toggle("on-ready", v);
+  $("btnBreak").classList.toggle("on-break", !v);
+  if(push && ME && ME.ext){
+    try{
+      await api("/api/queue/member",{method:"POST",body:JSON.stringify({ext:ME.ext,action:v?"add":"remove"})});
+      toast(v ? "🎧 آماده پاسخ — عضو صف شدید" : "☕ حالت استراحت — از صف خارج شدید");
+      log(v ? "joined queue" : "left queue");
+    }catch(e){ toast("خطا در تغییر وضعیت صف"); }
+  }
+}
+
+/* ---------- SIP ---------- */
+function loadSip(){
+  var s = document.createElement("script"); s.src = "/sip.js";
+  s.onload = async function(){
+    var cred = await api("/api/auth/sipcred").catch(function(){ return null; });
+    if(!cred){ $("phstat").innerHTML = '<span style="color:#dc2626">داخلی SIP برای این کاربر تعریف نشده</span>'; return; }
+    initUA(cred.password);
+  };
+  s.onerror = function(){ $("phstat").textContent = "خطا در بارگذاری موتور تلفن"; };
+  document.head.appendChild(s);
+}
+function initUA(pass){
+  var wssUrl = "wss://"+location.host+"/ws";
+  ua = new SIP.UserAgent({
+    uri: SIP.UserAgent.makeURI("sip:"+ME.ext+"@"+location.host),
+    transportOptions:{server:wssUrl},
+    authorizationUsername:String(ME.ext),
+    authorizationPassword: pass,
+    sessionDescriptionHandlerFactoryOptions:{peerConnectionConfiguration:{iceServers:[
+      {urls:"stun:stun.l.google.com:19302"},
+      {urls:"turn:46.100.58.20:3478?transport=tcp",username:"callcenter",credential:"FzTurn2026!x"},
+      {urls:"turn:46.100.58.20:3478?transport=udp",username:"callcenter",credential:"FzTurn2026!x"},
+      {urls:"turn:192.168.100.65:3478?transport=udp",username:"callcenter",credential:"FzTurn2026!x"}
+    ]}},
+    delegate:{ onInvite: onIncoming }
+  });
+  reg = new SIP.Registerer(ua);
+  ua.start().then(function(){ log("WSS connected"); }).catch(function(){ $("phstat").innerHTML='<span style="color:#dc2626">اتصال WSS برقرار نشد</span>'; });
+  /* register / re-register on transport events (single-flight + retry) */
+  ua.transport.stateChange.addListener(function(st){
+    if(st === SIP.TransportState.Connected){ try{ doRegister(); }catch(e){} }
+    if(st === SIP.TransportState.Disconnected){
+      regEverOk = false;
+      setTimeout(function(){ try{ ua.transport.connect(); }catch(e){} }, 2500);
+    }
+  });
+}
+function doRegister(){
+  if(regBusy) return;
+  regBusy = true;
+  reg.register().then(function(){
+    regBusy = false; regEverOk = true;
+    $("phstat").innerHTML = '<span style="color:#16a34a;font-weight:800">✓ تلفن ثبت شد — آماده دریافت تماس</span>';
+  }).catch(function(){
+    regBusy = false;
+    if(!regEverOk) $("phstat").innerHTML = '<span style="color:#dc2626">ثبت داخلی ناموفق — تلاش مجدد…</span>';
+    setTimeout(function(){ try{ doRegister(); }catch(e){} }, 3000);
+  });
+}
+
+/* ---------- incoming ---------- */
+function parseCallerName(cn){
+  var m = String(cn||"").match(/^v:([^|]*)\|([^|]*)\|(.*)$/);
+  if(!m) return { name:"", phone:"" };
+  return { name: (m[2]||"").trim(), phone: (m[3]||"").trim() };
+}
+function onIncoming(inv){
+  pendingInvite = inv; session = inv;
+  var raw = (inv.remoteIdentity && inv.remoteIdentity.displayName) || "";
+  var parsed = parseCallerName(raw);
+  var num = (inv.remoteIdentity && inv.remoteIdentity.uri && inv.remoteIdentity.uri.user) || "";
+  var pretty = parsed.phone || (/^\+?\d+$/.test(num) ? num : "—");
+  $("incName").textContent = parsed.name ? ("تماس از: "+parsed.name) : "تماس ورودی";
+  $("incPhone").textContent = pretty;
+  $("incMeta").textContent = parsed.name ? "بازدیدکننده وب‌سایت فیرزو" : "بازدیدکننده وب‌سایت فیرزو";
+  $("incoming").classList.add("on");
+  startRing();
+  setPhState("ring", "☎ تماس ورودی…", "برای پاسخ دکمه سبز را بزنید");
+  try{ if(Notification && Notification.permission==="granted") new Notification("☎ تماس ورودی فیرزو", {body:"از طرف: "+(parsed.name||pretty)}); }catch(e){}
+  inv.stateChange.addListener(function(st){
+    if(st===SIP.SessionState.Established) onEstablished(inv);
+    if(st===SIP.SessionState.Terminated){ stopRing(); $("incoming").classList.remove("on"); onSessionOver(); }
+  });
+}
+$("acceptBtn").addEventListener("click", answer);
+$("declineBtn").addEventListener("click", decline);
+async function answer(){
+  if(!session) return;
+  stopRing(); $("incoming").classList.remove("on");
+  try{
+    await session.accept({sessionDescriptionHandlerOptions:{constraints:{audio:true,video:false}}});
+    log("call answered");
+  }catch(e){ log("accept error"); toast("پاسخ به تماس ناموفق بود"); }
+}
+function decline(){
+  if(!session) return;
+  stopRing(); $("incoming").classList.remove("on");
+  try{
+    var S = SIP.SessionState;
+    if(session.state===S.Initial || session.state===S.Establishing) session.reject();
+    else session.bye();
+  }catch(e){}
+  log("call declined");
+}
+
+/* ---------- established ---------- */
+function onEstablished(inv){
+  stopRing(); $("incoming").classList.remove("on");
+  setPhState("live", "🎙️ در حال مکالمه", "تماس فعال است");
+  show("endBtn", true); $("muteBtn").classList.remove("hidden");
+  var t=0; $("tmr").textContent="0:00"; clearInterval(tmrI);
+  tmrI = setInterval(function(){ t++; $("tmr").textContent = Math.floor(t/60)+":"+String(t%60).padStart(2,"0"); }, 1000);
+  try{
+    var pc = inv.sessionDescriptionHandler.peerConnection;
+    var stream = new MediaStream();
+    pc.getReceivers().forEach(function(r){ if(r.track) stream.addTrack(r.track); });
+    var a = $("remoteAudio");
+    a.srcObject = stream; a.play().catch(function(){});
+    pc.ontrack = function(ev){ if(ev.streams&&ev.streams[0]){ a.srcObject=ev.streams[0]; a.play().catch(function(){}); } };
+  }catch(e){}
+}
+function onSessionOver(){
+  clearInterval(tmrI);
+  setPhState("", "آماده", "منتظر تماس ورودی…");
+  show("endBtn", false);
+  $("muteBtn").classList.remove("hidden");
+  $("muteBtn").innerHTML = "🎤 میکروفون";
+  muted = false;
+  $("remoteAudio").srcObject = null;
+  stopRing(); $("incoming").classList.remove("on");
+  session = null;
+}
+$("endBtn").addEventListener("click", function(){
+  try{
+    var S = SIP.SessionState;
+    if(session && (session.state===S.Initial || session.state===S.Establishing)) session.reject();
+    else if(session) session.bye();
+  }catch(e){}
+});
+$("muteBtn").addEventListener("click", function(){
+  try{
+    var pc = session && session.sessionDescriptionHandler && session.sessionDescriptionHandler.peerConnection;
+    if(!pc) return;
+    muted = !muted;
+    pc.getSenders().forEach(function(s){ if(s.track && s.track.kind==="audio") s.track.enabled = !muted; });
+    $("muteBtn").innerHTML = muted ? "🔇 بی‌صدا" : "🎤 میکروفون";
+  }catch(e){}
+});
+function setPhState(cls, big, sub){
+  var box = $("phstate");
+  box.className = "ph-state " + cls;
+  $("phbig").textContent = big;
+  $("phsub").textContent = sub;
+  show("tmr", cls==="live");
+}
+
+/* ---------- ring sound (WebAudio) ---------- */
+var actx = null;
+function startRing(){
+  try{
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    actx = actx || new AC();
+    if(actx.state==="suspended") actx.resume().catch(function(){});
+    var step = 0;
+    stopRing();
+    ringI = setInterval(function(){
+      if(!actx) return;
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = "sine";
+      o.frequency.value = (step++ % 2) === 0 ? 880 : 660;
+      g.gain.value = 0.06;
+      o.connect(g); g.connect(actx.destination);
+      o.start(); o.stop(actx.currentTime + 0.18);
+    }, 450);
+  }catch(e){}
+}
+function stopRing(){ clearInterval(ringI); ringI = null; }
+
+/* ---------- caller popup ---------- */
+function showPop(p){
+  var c = p.call||{}, v = p.visitor||{}, crm = p.crm||{};
+  currentCallId = c.id || null;
+  var initials = (v.name||"م").trim().charAt(0) || "؟";
+  var h = '<div class="caller">'
+    + '<div class="avatar">'+initials+'</div>'
+    + '<div class="who"><b>'+(v.name || "بازدیدکننده وب‌سایت")+'</b>'
+    + (v.phone ? '<span class="tag" dir="ltr">📞 '+v.phone+'</span>' : '<span class="tag dark">بدون شماره</span>')
+    + '</div></div>';
+  h += '<div class="kv">';
+  if(v.email) h += '<span class="tag" dir="ltr">✉ '+v.email+'</span>';
+  if(v.ip) h += '<span class="tag dark" dir="ltr">IP: '+v.ip+'</span>';
+  if(c.sip_ext) h += '<span class="tag">داخلی: '+c.sip_ext+'</span>';
+  if(c.unique_id) h += '<span class="tag dark" dir="ltr">'+String(c.unique_id).slice(0,16)+'</span>';
+  h += '</div>';
+  if(v.page) h += '<div class="crmsec"><b class="t">🌐 صفحه فعلی مشتری</b><span dir="ltr" style="font-size:11px;color:#475569;word-break:break-all">'+escapeHtml(String(v.page).slice(0,120))+'</span></div>';
+
+  if(crm && crm.user){
+    var u = crm.user;
+    h += '<div class="crmsec"><b class="t">👤 پروفایل CRM فیرزو</b>'
+      + '<div style="font-weight:800;margin-bottom:6px">'+escapeHtml(u.name||"—")+'</div>'
+      + (u.email ? '<div dir="ltr" style="text-align:left;font-size:11.5px;color:#475569">'+escapeHtml(u.email)+'</div>' : '')
+      + (u.phone ? '<div dir="ltr" style="text-align:left;font-size:11.5px;color:#475569">'+escapeHtml(u.phone)+'</div>' : '')
+      + '</div>';
+    if(crm.wallet) h += '<div class="crmsec"><b class="t">💰 کیف پول</b><span class="tag gold">'+escapeHtml(JSON.stringify(crm.wallet).slice(0,120))+'</span></div>';
+    if(crm.bookings && crm.bookings.length){
+      h += '<div class="crmsec"><b class="t">🧾 سفارشات اخیر ('+crm.bookings.length+')</b><table class="mini-table"><tr><th>نوع</th><th>وضعیت</th><th>مبلغ</th><th>تاریخ</th></tr>';
+      crm.bookings.slice(0,6).forEach(function(b){
+        h += '<tr><td>'+escapeHtml(faType(b.type))+'</td><td><span class="stb waiting">'+escapeHtml(String(b.status||"—"))+'</span></td>'
+          + '<td dir="ltr">'+escapeHtml(String(b.totalAmount||""))+' '+escapeHtml(String(b.currency||""))+'</td>'
+          + '<td>'+escapeHtml(String(b.createdAt||"").slice(0,10))+'</td></tr>';
+      });
+      h += '</table></div>';
+    }
+  } else {
+    h += '<div class="crmsec"><b class="t">👤 پروفایل CRM فیرزو</b><span class="muted">مشتری مطابقی یافت نشد'
+      + (crm && crm.error ? ' <span dir="ltr">('+escapeHtml(crm.error)+')</span>' : '') + '</span></div>';
+  }
+  $("pop").innerHTML = h;
+
+  /* past calls */
+  var past = p.past_calls||[];
+  $("past").innerHTML = past.length ? past.map(function(x){
+    var stars = x.survey_rating ? " " + "★".repeat(x.survey_rating) : "";
+    return '<div class="pastcall"><span>'+escapeHtml(String(x.started_at||"").slice(5,16))+'</span>'
+      + '<span class="stb '+escapeHtml(x.status||"")+'">'+faStatus(x.status)+'</span>'
+      + (x.operator_ext ? '<span class="muted">اپ '+escapeHtml(String(x.operator_ext))+'</span>' : '')
+      + (x.notes ? '<span class="muted" title="'+escapeHtml(x.notes)+'">📝</span>' : '')
+      + '<span class="muted">'+stars+'</span></div>';
+  }).join("") : '<div class="muted">اولین تماس این مشتری است</div>';
+
+  /* notes */
+  show("noteCard", !!currentCallId);
+  $("notes").value = c.notes || "";
+}
+function escapeHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function faStatus(s){ return {waiting:"در انتظار",answered:"پاسخ داده شد",completed:"تکمیل شد",missed:"بی‌پاسخ"}[s]||s||"—"; }
+function faType(t){ return {FLIGHT:"پرواز",HOTEL:"هتل",TOUR:"تور",TRAIN:"قطار",VISA:"ویزا",INSURANCE:"بیمه",ESIM:"ایسیم"}[String(t||"").toUpperCase()]||t||"—"; }
+
+/* ---------- save note ---------- */
+$("saveNote").addEventListener("click", async function(){
+  if(!currentCallId){ toast("تماسی برای ذخیره یادداشت وجود ندارد"); return; }
+  try{
+    await api("/api/calls/"+currentCallId+"/notes",{method:"POST",body:JSON.stringify({notes:$("notes").value})});
+    $("savedFlash").style.display = "inline";
+    setTimeout(function(){ $("savedFlash").style.display = "none"; }, 1800);
+  }catch(e){ toast("خطا در ذخیره یادداشت"); }
+});
+
+/* ---------- auto-start from saved token ---------- */
+(async function(){
+  if(!T) return;
+  try{
+    var me = await fetch("/api/auth/me",{headers:{"Authorization":"Bearer "+T}}).then(function(r){ if(!r.ok) throw 0; return r.json(); });
+    if(me && me.id){ ME = { id:me.id, name:me.name, role:me.role, ext:me.sip_ext }; boot(); return; }
+  }catch(e){}
+  localStorage.removeItem("cc_token");
+})();
+if(Notification && Notification.permission === "default"){ try{ Notification.requestPermission(); }catch(e){} }
+</script>
+<audio id="remoteAudio" autoplay playsinline style="display:none"></audio>
+</body>
+</html>

@@ -1,0 +1,111 @@
+name: "07 · Service monitor (live callcenter health)"
+
+# periodically pings the LIVE deployment so you know about outages before
+# customers do. Configure repo VARIABLE  CC_MONITOR_URL  (default below),
+# e.g. https://call.firuzo.online — failures open/update an issue.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Base URL to monitor"
+        required: false
+        default: ""
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: service-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    name: Probe panel / widget / API / WSS
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ vars.CC_MONITOR_URL || 'https://call.firuzo.online' }}
+    steps:
+      - name: Health probes
+        id: probe
+        run: |
+          BASE="${{ inputs.url || env.BASE_URL }}"
+          echo "monitoring: $BASE"
+          FAIL=0
+          probe() { # probe <name> <url> [extra curl args...]
+            local name="$1"; shift
+            local url="$1"; shift
+            local code
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$@" "$url" || echo 000)
+            echo "- $name → HTTP $code" >> probe-results.md
+            echo "$name=$code" >> "$GITHUB_OUTPUT"
+            # 2xx/3xx pass, anything else is an incident
+            if [[ ! "$code" =~ ^(2|3)[0-9][0-9]$ ]]; then FAIL=1; fi
+          }
+          probe "health"        "$BASE/health"
+          probe "widget-config" "$BASE/api/widget/config" -H "Origin: $BASE"
+          probe "widget-js"     "$BASE/widget.js"
+          probe "operator"      "$BASE/operator/"
+          probe "admin"         "$BASE/admin/"
+          # WSS handshake must answer 101 Switching Protocols
+          WSCODE=$(curl -s -o /dev/null -w '%{http_code}' --http1.1 --max-time 15 \
+                    -H "Upgrade: websocket" -H "Connection: Upgrade" \
+                    -H "Sec-WebSocket-Key: c2VsZW5pdW1jb2xsZWN0aXZl" -H "Sec-WebSocket-Version: 13" \
+                    "$BASE/ws" || echo 000)
+          echo "- wss handshake → HTTP $WSCODE (expect 101)" >> probe-results.md
+          if [ "$WSCODE" != "101" ]; then FAIL=1; fi
+          cat probe-results.md >> "$GITHUB_STEP_SUMMARY"
+          echo "fail=$FAIL" >> "$GITHUB_OUTPUT"
+          exit $FAIL
+
+      - name: Open incident issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = "🔴 Callcenter service DOWN (" + new Date().toISOString() + ")";
+            const body =
+              "The scheduled monitor failed one or more probes.\n\n" +
+              "Run: " + context.runNumber + "  |  URL: " + (process.env.BASE_URL || "n/a") + "\n\n" +
+              "Check the Actions log for which probe failed: /health, widget config, widget.js, /operator/, /admin/ or the WSS handshake.\n\n" +
+              "Recovery hints: docs/TROUBLESHOOTING-FA.md — then run `installer/check.sh --full` on the server.";
+            // update the existing open incident instead of spamming new issues
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: "open", labels: "incident", per_page: 1
+            });
+            if (issues.data.length) {
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: issues.data[0].number, title, body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ["incident", "monitor"]
+              });
+            }
+
+      - name: Close incident on recovery
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: "open", labels: "incident", per_page: 10
+            });
+            for (const i of issues.data) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: i.number,
+                body: "🟢 Recovered at " + new Date().toISOString()
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: i.number, state: "closed"
+              });
+            }

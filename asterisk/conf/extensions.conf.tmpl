@@ -1,0 +1,44 @@
+; ==== Call Center - dialplan ====
+; Rendered by installer/install.sh from this template.
+; Placeholder: __CCAPI__ -> internal REST base of the backend app
+;              (e.g. http://192.168.100.65:3006/api/internal)
+;
+[general]
+static=yes
+writeprotect=yes
+clearglobalvars=no
+
+[globals]
+CCAPI=__CCAPI__
+
+; Visitors arriving from the website widget (SIP.js -> WSS -> here)
+[from-widget]
+exten => _X.,1,NoOp(Visitor call ${CALLERID(num)} uniq=${UNIQUEID})
+ same => n,Set(CHANNEL(language)=fa)
+ same => n,Answer()
+ same => n,MixMonitor(${UNIQUEID}.wav)
+ same => n,UserEvent(CallStart,UniqueID:${UNIQUEID},Caller:${CALLERID(num)},CName:${CALLERID(name)})
+ same => n,Playback(custom/welcome)
+ same => n,Playback(custom/queue-wait)
+ same => n,Queue(support,tT,,,600)
+ same => n,UserEvent(CallEndBridge,UniqueID:${UNIQUEID},QStatus:${QUEUESTATUS})
+ same => n,Playback(custom/survey-intro)
+ same => n,Read(RATING,beep,1,,2,7)
+ same => n,GotoIf($["x${RATING}" = "x"]?unrated)
+ same => n,Goto(rated)
+ same => n(unrated),Set(RATING=0)
+ same => n(rated),UserEvent(CallSurvey,UniqueID:${UNIQUEID},Rating:${RATING})
+ same => n,Playback(custom/survey-thanks)
+ same => n,Hangup()
+
+; Operator web phones calling each other / feature codes
+[from-internal]
+exten => _1XXX,1,NoOp(Operator ${CALLERID(num)} dials ${EXTEN})
+ same => n,Dial(PJSIP/${EXTEN},30)
+ same => n,Hangup()
+exten => *99,1,UserEvent(OpQueueToggle,Ext:${CALLERID(num)})
+ same => n,Playback(beep)
+ same => n,Hangup()
+
+[default]
+exten => _X.,1,Hangup()

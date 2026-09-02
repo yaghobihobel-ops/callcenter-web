@@ -1,0 +1,38 @@
+name: "03 · Panels (operator + admin)"
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["backend/public/operator/**", "backend/public/admin/**", ".github/workflows/03-panels.yml"]
+  pull_request:
+    paths: ["backend/public/operator/**", "backend/public/admin/**"]
+  workflow_dispatch:
+
+jobs:
+  panels:
+    name: HTML structure & required wiring
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Structural checks (offline, no network flake)
+        run: |
+          check() {
+            local f="$1"; shift
+            for marker in "$@"; do
+              grep -q "$marker" "$f" || { echo "::error::$f missing: $marker"; exit 1; }
+            done
+            echo "OK  $f"
+          }
+          # operator: login, SIP web-phone, incoming-call popup, CRM panel
+          check backend/public/operator/index.html \
+            "viewport" "socket.io" "sip" "login" "api/auth"
+          # admin: stats, CDR, recordings, operators, settings
+          check backend/public/admin/index.html \
+            "viewport" "socket.io" "api/stats" "cdr" "operator"
+
+      - name: HTML hint (best effort, warnings allowed)
+        continue-on-error: true
+        run: |
+          npx --yes htmlhint backend/public/operator/index.html backend/public/admin/index.html \
+            --format unix || true

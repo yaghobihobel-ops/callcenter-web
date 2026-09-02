@@ -1,0 +1,19 @@
+# ==== Call Center for firuzo.online — added 2026-09 ====
+# Relays WebRTC media between internet browsers and internal Asterisk (192.168.100.85)
+listening-port=3478
+listening-ip=192.168.100.65
+relay-ip=192.168.100.65
+external-ip=46.100.58.20/192.168.100.65
+min-port=49160
+max-port=49200
+fingerprint
+lt-cred-mech
+realm=firuzo.online
+user=callcenter:FzTurn2026!x
+no-tls
+no-dtls
+stale-nonce=600
+user-quota=0
+total-quota=0
+no-cli
+log-file=/var/log/turnserver.log

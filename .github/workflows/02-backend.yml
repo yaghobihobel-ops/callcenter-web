@@ -1,0 +1,46 @@
+name: "02 · Backend (API + AMI + CRM connector)"
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["backend/**", ".github/workflows/02-backend.yml"]
+  pull_request:
+    paths: ["backend/**"]
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: Syntax + deps install + boot smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Syntax check every JS file
+        run: |
+          for f in server.js runtime.js lib/ami.js lib/db.js lib/remote.js lib/state.js; do
+            node --check "backend/$f"
+            echo "OK  backend/$f"
+          done
+
+      - name: package.json is valid
+        run: node -e "JSON.parse(require('fs').readFileSync('backend/package.json','utf8')); console.log('valid')"
+
+      - name: Install production deps
+        working-directory: backend
+        run: npm install --omit=dev --no-audit --no-fund
+
+      - name: Modules can be required (no boot)
+        working-directory: backend
+        env:
+          CC_DB_HOST: 127.0.0.1
+        run: node -e "require('./lib/db'); require('./lib/ami'); require('./lib/state'); require('./lib/remote'); console.log('libs load OK')"
+
+      - name: SQL schema sanity (CREATE TABLE statements)
+        run: |
+          COUNT=$(grep -c "CREATE TABLE IF NOT EXISTS" backend/lib/db.js)
+          echo "tables defined: $COUNT"
+          [ "$COUNT" -ge 5 ] || { echo "::error::schema lost tables"; exit 1; }
