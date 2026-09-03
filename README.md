@@ -135,6 +135,8 @@ point the monitor at your deployment.
   default credentials) or rotate everything before making it public.
 
 ## Documentation
+- [Update & release guide (updatable install package)](docs/UPDATE-FA.md)
+
 
 - 🇮🇷 **User manual (complete)**: [docs/USER-MANUAL-FA.md](docs/USER-MANUAL-FA.md)
 - 🇮🇷 Install guide: [docs/INSTALL-FA.md](docs/INSTALL-FA.md)

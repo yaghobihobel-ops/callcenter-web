@@ -148,19 +148,36 @@ else
     REL_URL="$API/latest"
   fi
   REL_JSON="$(curl -fsSL "${HDR[@]}" "$REL_URL" 2>/dev/null)" || die "cannot fetch release info from $REL_URL (set GITHUB_TOKEN for private repo)"
-  TARBALL_URL="$(echo "$REL_JSON" | python3 -c "
-import json,sys
+  TARBALL_URL="$(INCLUDE_PRE=$INCLUDE_PRE python3 -c "
+import json,os,sys
 rel=json.load(sys.stdin)
 if rel.get('draft'): print(''); sys.exit()
-assets=[a for a in rel.get('assets',[]) if a['name'].endswith('.tar.gz') and 'sha256' not in a['name']]
-if not INCLUDE_PRE and rel.get('prerelease'): assets=[]
-print(assets[0]['browser_download_url'] if assets else '')" 2>/dev/null || true)"
-  [ -n "$TARBALL_URL" ] || die "no release tarball asset found${WANT_VER:+ for $WANT_VER} (upload release with scripts/release.sh)"
-  SHA_URL="${TARBALL_URL%.tar.gz}.tar.gz.sha256"
-  curl -fsSL "${HDR[@]}" -o "/tmp/cc-update-$TS.tar.gz" "$TARBALL_URL"
+include_pre = os.environ.get('INCLUDE_PRE') == '1'
+if not include_pre and rel.get('prerelease'): print(''); sys.exit()
+assets=[a for a in rel.get('assets',[])
+        if a['name'].startswith('callcenter-web-') and a['name'].endswith('.tar.gz')
+        and 'sha256' not in a['name']]
+print(assets[0]['id'] if assets else '')" <<< "$REL_JSON" 2>/tmp/cc-fetch-err.log || true)"
+  [ -n "$TARBALL_URL" ] || { cat /tmp/cc-fetch-err.log >&2 || true; die "no release tarball asset found${WANT_VER:+ for $WANT_VER} (upload release with scripts/release.sh)"; }
+  # private repos: download via API asset endpoint (browser_download_url rejects tokens)
+  ASPEC='application/octet-stream'
+  if [ -n "${GITHUB_TOKEN:-}" ]; then
+    curl -fsSL -H "Authorization: token $GITHUB_TOKEN" -H "Accept: $ASPEC" \
+      -o "/tmp/cc-update-$TS.tar.gz" "$API/assets/$TARBALL_URL"
+  else
+    curl -fsL -H "Accept: $ASPEC" -o "/tmp/cc-update-$TS.tar.gz" "$API/assets/$TARBALL_URL"
+  fi
   TARBALL="/tmp/cc-update-$TS.tar.gz"
-  if curl -fsSL "${HDR[@]}" -o "/tmp/cc-update-$TS.tar.gz.sha256" "$SHA_URL" 2>/dev/null; then
-    echo "$(cat /tmp/cc-update-$TS.tar.gz.sha256 | awk '{print $1}')  $TARBALL" | sha256sum -c - >/dev/null \
+  # sha256 sibling asset
+  SHA_ID="$(python3 -c "
+import json,sys
+rel=json.load(sys.stdin)
+for a in rel.get('assets',[]):
+    if a['name'].startswith('callcenter-web-') and a['name'].endswith('.tar.gz.sha256'):
+        print(a['id']); break" <<< "$REL_JSON" 2>/dev/null || true)"
+  if [ -n "$SHA_ID" ] && curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: token $GITHUB_TOKEN"} -H "Accept: $ASPEC" \
+      -o "/tmp/cc-update-$TS.tar.gz.sha256" "$API/assets/$SHA_ID" 2>/dev/null; then
+    echo "$(awk '{print $1}' /tmp/cc-update-$TS.tar.gz.sha256)  $TARBALL" | sha256sum -c - >/dev/null \
       && ok "sha256 verified" || die "sha256 MISMATCH — aborting, nothing touched"
   else
     warn "no .sha256 asset — skipping integrity check"

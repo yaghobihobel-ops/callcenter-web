@@ -1,0 +1,49 @@
+name: "08 · Updater (update.sh + release.sh)"
+on:
+  push:
+    paths: ["installer/**", "scripts/release.sh", "VERSION", ".github/workflows/08-update.yml"]
+  workflow_dispatch:
+
+jobs:
+  updater-flow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shell syntax check
+        run: |
+          bash -n installer/install.sh
+          bash -n installer/update.sh
+          bash -n installer/check.sh
+          bash -n scripts/release.sh
+
+      - name: Build release package
+        run: bash scripts/release.sh
+
+      - name: Hermetic update flow (install → update → verify → rollback)
+        run: |
+          cat > /tmp/cc.conf <<EOF
+          CC_DOMAIN=call.example.com
+          APP_HOST=$(hostname -I | awk '{print $1}')
+          PBX_HOST=192.0.2.99
+          PUBLIC_IP=198.51.100.7
+          INSTALL_DIR=/tmp/cc-it/callcenter
+          DB_PASS=TestDb!123
+          JWT_SECRET=TestJwt!123
+          EOF
+          mkdir -p /tmp/cc-it/callcenter/app
+          echo "0.0.0" > /tmp/cc-it/callcenter/VERSION
+          printf 'CC_JWT=old-secret\n' > /tmp/cc-it/callcenter/app/.env
+          echo '{}' > /tmp/cc-it/callcenter/app/package.json
+
+          CC_TEST_MODE=1 bash installer/update.sh --config /tmp/cc.conf \
+            --from-file dist/callcenter-web-*.tar.gz
+
+          echo "--- assertions ---"
+          test "$(cat /tmp/cc-it/callcenter/VERSION | tr -d '[:space:]')" = "$(cat VERSION | tr -d '[:space:]')"
+          grep -q "CC_JWT=old-secret" /tmp/cc-it/callcenter/app/.env
+          test -f /tmp/cc-it/callcenter/app/runtime.js
+          test -f /tmp/cc-it/callcenter/install.conf
+          ls /tmp/cc-it/callcenter/backups/update-*/app-dir.tar.gz
+          grep -q "OK" /tmp/cc-it/callcenter/update-history.log
+          echo "updater flow OK"
