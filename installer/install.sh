@@ -493,7 +493,8 @@ install_nginx(){
 
 # ---------- run ----------
 echo "============================================================"
-echo " callcenter-web installer"
+echo " callcenter-web installer — mode: $([ "$UPGRADE" = 1 ] && echo upgrade || echo install)"
+[ "$UPGRADE" = 1 ] && echo "  upgrade: .env/creds/DB preserved; node_modules kept unless deps changed"
 echo "  host roles: app=$IS_APP pbx=$IS_PBX"
 echo "  components: pbx=$WANT_PBX turn=$WANT_TURN app=$WANT_APP nginx=$WANT_NGINX"
 echo "  domain    : https://${CC_DOMAIN}"

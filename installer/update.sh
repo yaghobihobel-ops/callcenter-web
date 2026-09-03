@@ -23,6 +23,8 @@
 # ============================================================
 set -Eeuo pipefail
 
+# (SELF_DIR kept for parity with install.sh; path-relative calls not needed here)
+# shellcheck disable=SC2034
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ---------- logging ----------
@@ -227,7 +229,7 @@ if [ "$APPLY_OK" = 1 ]; then
     VERIFY_OK=0
     sleep 3
     APP_PORT_GREP="$(grep -E '^CC_PORT=' "$APP_DIR/.env" | cut -d= -f2 || echo 3006)"
-    for i in 1 2 3 4 5; do
+    for _try in 1 2 3 4 5; do
       if curl -fsS "http://127.0.0.1:${APP_PORT_GREP:-3006}/health" >/dev/null 2>&1; then VERIFY_OK=1; break; fi
       sleep 2
     done
@@ -250,9 +252,10 @@ if [ "$APPLY_OK" != 1 ]; then
   rm -rf "${APP_DIR}.rollbacktmp"
   mv "$APP_DIR" "${APP_DIR}.rollbacktmp"
   tar -xzf "$BK/app-dir.tar.gz" -C "$(dirname "$APP_DIR")"
-  if [ -f "$BK/db-"*.sql.gz ] && [ -n "${DB_NAME:-}" ]; then
+  dbdump="$(ls "$BK"/db-*.sql.gz 2>/dev/null | head -1 || true)"
+  if [ -n "$dbdump" ] && [ -n "${DB_NAME:-}" ]; then
     warn "restoring DB snapshot (data written after backup is lost)"
-    gunzip -c "$BK/db-$DB_NAME.sql.gz" | mysql -h127.0.0.1 -u"${DB_USER:-callcenter}" -p"${DB_PASS}" "$DB_NAME"
+    gunzip -c "$dbdump" | mysql -h127.0.0.1 -u"${DB_USER:-callcenter}" -p"${DB_PASS}" "$DB_NAME"
   fi
   svc start callcenter-app
   sleep 1
