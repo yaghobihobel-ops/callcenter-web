@@ -58,7 +58,7 @@ const CFG = {
   supportPhoneDisplay: process.env.CC_SUPPORT_PHONE_DISPLAY || "۰۲۱-۹۱۰۰۰۰۰۰",
   brandName: process.env.CC_BRAND_NAME || "فیرزو",
   brandColor: process.env.CC_BRAND_COLOR || "#0ea5e9",
-  version: "3.0.0",
+  version: require("./package.json").version,
 };
 CFG.ami.host = process.env.CC_AMI_HOST || CFG.ami.host;
 
