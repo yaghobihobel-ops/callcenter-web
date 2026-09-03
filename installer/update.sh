@@ -5,6 +5,7 @@
 #   sudo ./update.sh --config /opt/callcenter/install.conf --from-file callcenter-web-3.0.0.tar.gz
 #   sudo ./update.sh --config /opt/callcenter/install.conf --from-github [vX.Y.Z]
 #   sudo ./update.sh --config /opt/callcenter/install.conf --from-github --pre        # include pre-releases
+#   sudo ./update.sh --config ... --from-file ... --only app     # restrict apply to one role (pbx|turn|app|nginx)
 #
 # What it does, in order:
 #   1. preflight   : existing install? service state? disk space? config present?
@@ -38,16 +39,17 @@ ok(){ echo -e "${C_G}[ OK ]${C_0} $*"; }
 warn(){ echo -e "${C_Y}[WARN]${C_0} $*"; }
 die(){ echo -e "${C_R}[FAIL]${C_0} $*" >&2; exit 1; }
 
-usage(){ sed -n '2,18p' "$0"; exit 0; }
+usage(){ sed -n '2,19p' "$0"; exit 0; }
 
 # ---------- args ----------
-CONFIG_FILE=""; FROM_FILE=""; FROM_GITHUB=""; WANT_VER=""; INCLUDE_PRE=0
+CONFIG_FILE=""; FROM_FILE=""; FROM_GITHUB=""; WANT_VER=""; INCLUDE_PRE=0; ONLY=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --config) CONFIG_FILE="$2"; shift 2;;
     --from-file) FROM_FILE="$2"; shift 2;;
     --from-github) FROM_GITHUB=1; [ -n "${2:-}" ] && [ "${2:0:1}" != "-" ] && WANT_VER="$2" && shift; shift;;
     --pre) INCLUDE_PRE=1; shift;;
+    --only) ONLY="$2"; shift 2;;
     -h|--help) usage;;
     *) die "unknown argument: $1";;
   esac
@@ -212,7 +214,7 @@ fi
 info "[5/7] apply (install.sh --upgrade)"
 svc stop callcenter-app
 APPLY_OK=0
-if bash "$STAGE/installer/install.sh" --config "$CONFIG_FILE" --upgrade >>"$LOG" 2>&1; then
+if bash "$STAGE/installer/install.sh" --config "$CONFIG_FILE" --upgrade ${ONLY:+--only "$ONLY"} >>"$LOG" 2>&1; then
   APPLY_OK=1; ok "installer finished"
 else
   warn "installer FAILED — rolling back"
