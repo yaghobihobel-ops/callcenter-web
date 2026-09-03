@@ -107,8 +107,9 @@ BK="$INSTALL_DIR/backups/update-$TS"
 mkdir -p "$BK"
 
 # DB dump (best effort — the update continues even if DB creds changed)
-DB_NAME=""; DB_USER=""; DB_PASS=""
-eval "$(grep -E '^(CC_DB_NAME|CC_DB_USER|CC_DB_PASS)=' "$APP_DIR/.env" 2>/dev/null || true)"
+# Parse .env WITHOUT eval — passwords may contain $ ! # { } (set -u safe)
+envget(){ grep -E "^$1=" "$APP_DIR/.env" 2>/dev/null | head -1 | cut -d= -f2- | sed -e "s/^'//" -e "s/'\$//" -e 's/^"//' -e 's/"$//'; }
+DB_NAME="$(envget CC_DB_NAME)"; DB_USER="$(envget CC_DB_USER)"; DB_PASS="$(envget CC_DB_PASS)"
 if command -v mysql >/dev/null && [ -n "${DB_NAME:-}" ]; then
   if mysql -h127.0.0.1 -u"${DB_USER:-callcenter}" -p"${DB_PASS}" -e "USE \`$DB_NAME\`" >/dev/null 2>&1; then
     mysqldump -h127.0.0.1 -u"${DB_USER:-callcenter}" -p"${DB_PASS}" \
