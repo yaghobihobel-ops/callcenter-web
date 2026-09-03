@@ -1,0 +1,99 @@
+{
+ "bundle": "asterisk-configured",
+ "asterisk_version": "Asterisk 18.10.0~dfsg+~cs6.10.40431411-2",
+ "source_host": "192.168.100.85 (firuzo dev PBX)",
+ "created_utc": "2026-09-03T10:51:36Z",
+ "files": [
+  {
+   "path": "etc-asterisk/pjsip.conf",
+   "source": "/etc/asterisk/pjsip.conf",
+   "bytes": 2224,
+   "sha256": "b38b9188f19d2262d27461059425e3ea40bffd86d72521c44fd33bd659b9463a"
+  },
+  {
+   "path": "etc-asterisk/extensions.conf",
+   "source": "/etc/asterisk/extensions.conf",
+   "bytes": 1227,
+   "sha256": "8c4042c61970b3d7b5d2b170e1b4e7c26b3cbde83983b253bb82ba1b16ea54c1"
+  },
+  {
+   "path": "etc-asterisk/manager.conf",
+   "source": "/etc/asterisk/manager.conf",
+   "bytes": 274,
+   "sha256": "9906e36f228c7fe75fc27617902a387bbd47bf0e1ed085beab55a245d2811169"
+  },
+  {
+   "path": "etc-asterisk/queues.conf",
+   "source": "/etc/asterisk/queues.conf",
+   "bytes": 290,
+   "sha256": "2eedc90e0b7fec8b9a77ebdd58d2e5bb30e9eea17bccf3713312a9572bbd1a4c"
+  },
+  {
+   "path": "etc-asterisk/rtp.conf",
+   "source": "/etc/asterisk/rtp.conf",
+   "bytes": 128,
+   "sha256": "513f89c83961056c6aa4e6c75d09b95c9fb63734a9866178c3d0a9a0b0e891d3"
+  },
+  {
+   "path": "etc-asterisk/http.conf",
+   "source": "/etc/asterisk/http.conf",
+   "bytes": 204,
+   "sha256": "c17d6da343803a1e6c7724c06d8328aa4c0434f3552fddf6c9523abd6edf9ef7"
+  },
+  {
+   "path": "etc-asterisk/cdr.conf",
+   "source": "/etc/asterisk/cdr.conf",
+   "bytes": 8436,
+   "sha256": "c4f5036cee036839723c4823d4d62324fc3f67fdbb56a516843e48505844627a"
+  },
+  {
+   "path": "etc-asterisk/logger.conf",
+   "source": "/etc/asterisk/logger.conf",
+   "bytes": 7555,
+   "sha256": "6b81a5ded0748608c99cf31b71dd07cdb2334d485123753ca73c8b6c0fa42dd4"
+  },
+  {
+   "path": "sounds/fa/custom/welcome.wav",
+   "source": "/usr/share/asterisk/sounds/fa/custom/welcome.wav",
+   "bytes": 108750,
+   "sha256": "d8df1067d9bd48d12bfb977d629e747529657374ea0dbb878acd61239cc86f64"
+  },
+  {
+   "path": "sounds/fa/custom/op-leave.wav",
+   "source": "/usr/share/asterisk/sounds/fa/custom/op-leave.wav",
+   "bytes": 49998,
+   "sha256": "cc12c4c20ad65fb15a7fd371ac439c431a6a14ad5a838db8ae03e6e5d719c427"
+  },
+  {
+   "path": "sounds/fa/custom/survey-thanks.wav",
+   "source": "/usr/share/asterisk/sounds/fa/custom/survey-thanks.wav",
+   "bytes": 79566,
+   "sha256": "74186084a58aa9a5db0318e80f868a50c3b172e32a49f879f1841f75a75cc3e1"
+  },
+  {
+   "path": "sounds/fa/custom/queue-wait.wav",
+   "source": "/usr/share/asterisk/sounds/fa/custom/queue-wait.wav",
+   "bytes": 102606,
+   "sha256": "957a7d9b27a0baeccb5b22e70bdbecde68dcbc8061f8d71a9fe53b01e6a078a7"
+  },
+  {
+   "path": "sounds/fa/custom/op-join.wav",
+   "source": "/usr/share/asterisk/sounds/fa/custom/op-join.wav",
+   "bytes": 50382,
+   "sha256": "e6d9b0b7a1b3ce9ee6e5a5397517641fa35a49aa830539d335236dc99f610d2b"
+  },
+  {
+   "path": "sounds/fa/custom/survey-intro.wav",
+   "source": "/usr/share/asterisk/sounds/fa/custom/survey-intro.wav",
+   "bytes": 91086,
+   "sha256": "d3706f7a0bf1d7be7bbd4563e1ab4f3f842bfce5253e6723c14f5d62f0e220ab"
+  },
+  {
+   "path": "sounds/fa/custom/after-hours.wav",
+   "source": "/usr/share/asterisk/sounds/fa/custom/after-hours.wav",
+   "bytes": 105294,
+   "sha256": "13bc1abc5ce21086e8eaa83498eba939867352c82a26a4cbd44c9b3edd74bb57"
+  }
+ ],
+ "note": "Contains live credentials — private distribution only."
+}
