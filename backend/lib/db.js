@@ -1,4 +1,4 @@
-/* lib/db.js — MySQL pool + schema */
+/* lib/db.js — MariaDB pool + schema v3 */
 const mysql = require("mysql2/promise");
 
 const pool = mysql.createPool({
@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS users (
   role ENUM('admin','operator') NOT NULL DEFAULT 'operator',
   sip_ext VARCHAR(10),
   active TINYINT DEFAULT 1,
+  pause_reason VARCHAR(40) DEFAULT '',
+  last_active DATETIME NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -37,12 +39,14 @@ CREATE TABLE IF NOT EXISTS calls (
   page_url VARCHAR(500),
   user_agent VARCHAR(300),
   status ENUM('waiting','ringing','answered','missed','completed') DEFAULT 'waiting',
+  disposition VARCHAR(40) DEFAULT '',
   started_at DATETIME,
   answered_at DATETIME,
   ended_at DATETIME,
   wait_sec INT DEFAULT 0,
   duration_sec INT DEFAULT 0,
   operator_ext VARCHAR(10),
+  transferred_to VARCHAR(10) DEFAULT '',
   survey_rating TINYINT,
   recording_path VARCHAR(255),
   notes TEXT,
@@ -86,6 +90,57 @@ CREATE TABLE IF NOT EXISTS settings (
   skey VARCHAR(64) PRIMARY KEY,
   sval TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS callbacks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  call_id INT NULL,
+  phone VARCHAR(40) NOT NULL,
+  name VARCHAR(120) DEFAULT '',
+  reason VARCHAR(255) DEFAULT '',
+  status ENUM('new','assigned','done','failed') DEFAULT 'new',
+  assigned_to VARCHAR(10) DEFAULT '',
+  assigned_by VARCHAR(10) DEFAULT '',
+  note TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL,
+  done_at DATETIME NULL,
+  INDEX idx_cbstatus (status),
+  INDEX idx_cbphone (phone)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  channel VARCHAR(60) NOT NULL,
+  from_ext VARCHAR(10) DEFAULT '',
+  from_name VARCHAR(120) DEFAULT '',
+  kind VARCHAR(10) DEFAULT 'user',
+  body VARCHAR(2000) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_chat (channel, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS quality_samples (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ext VARCHAR(16) DEFAULT '',
+  unique_id VARCHAR(64) DEFAULT '',
+  side VARCHAR(10) DEFAULT 'agent',
+  rtt_ms INT DEFAULT 0,
+  jitter_ms INT DEFAULT 0,
+  loss_pct FLOAT DEFAULT 0,
+  mos FLOAT DEFAULT 0,
+  detail VARCHAR(500) DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_qs (ext, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS op_events (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ext VARCHAR(10) DEFAULT '',
+  kind VARCHAR(30) DEFAULT '',
+  detail VARCHAR(500) DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_oe (ext, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 `;
 
 async function initSchema() {
@@ -93,6 +148,21 @@ async function initSchema() {
   for (const stmt of SCHEMA.split(";")) {
     const s = stmt.trim();
     if (s) await conn.query(s);
+  }
+  /* guarded column additions (older installs) */
+  const addCols = [
+    ["calls", "disposition", "VARCHAR(40) DEFAULT ''"],
+    ["calls", "transferred_to", "VARCHAR(10) DEFAULT ''"],
+    ["users", "pause_reason", "VARCHAR(40) DEFAULT ''"],
+    ["users", "last_active", "DATETIME NULL"],
+  ];
+  for (const [tbl, col, def] of addCols) {
+    try {
+      const [c] = await conn.query(
+        `SELECT COUNT(*) n FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=?`,
+        [tbl, col]);
+      if (!c[0].n) await conn.query(`ALTER TABLE ${tbl} ADD COLUMN ${col} ${def}`);
+    } catch (e) { console.error("[schema]", tbl + "." + col, e.message); }
   }
   conn.release();
 }

@@ -3,438 +3,854 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0c4a6e">
-<title>پنل مدیریت کال‌سنتر — فیرزو</title>
-<style>
-:root{
-  --bg:#0b2942; --card:#fff; --ink:#0f172a; --sub:#64748b; --brand:#0ea5e9; --brand2:#0369a1; --brand3:#0c4a6e;
-  --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626; --soft:#f1f5f9; --line:#e2e8f0;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Vazirmatn,'Segoe UI',Tahoma,-apple-system,sans-serif;background:
-  radial-gradient(1200px 500px at 85% -10%, rgba(14,165,233,.25), transparent 60%),
-  radial-gradient(900px 420px at 0% 110%, rgba(2,132,199,.18), transparent 55%),
-  linear-gradient(160deg,#082036 0%,#0b2942 45%,#0e3a5c 100%);
-  color:var(--ink);font-size:14px;min-height:100vh;min-height:100dvh}
-button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-weight:800;transition:.2s;-webkit-tap-highlight-color:transparent}
-input,select,textarea{font-family:inherit;outline:none}
-.hidden{display:none!important}
-
-/* login */
-.loginwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.login{width:400px;max-width:100%;background:rgba(255,255,255,.97);border-radius:26px;padding:34px 30px;
-  box-shadow:0 30px 80px rgba(0,0,0,.45);animation:pop .4s}
-@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
-.llogo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:6px}
-.llogo .ic{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#38bdf8,#0369a1);
-  display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(2,132,199,.4)}
-.llogo .ic svg{width:26px;height:26px;fill:#fff}
-.login h1{font-size:18px;color:var(--brand3);text-align:center;font-weight:900}
-.login p.sub{text-align:center;color:var(--sub);font-size:12px;margin:4px 0 22px}
-.fld{margin-bottom:12px}
-.fld label{display:block;font-size:12px;font-weight:800;color:#475569;margin-bottom:6px}
-.fld input{width:100%;border:1.5px solid var(--line);background:var(--soft);border-radius:14px;padding:12px 14px;font-size:14px}
-.fld input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px rgba(14,165,233,.15)}
-.bigbtn{width:100%;padding:14px;font-size:15px;color:#fff;border-radius:14px;
-  background:linear-gradient(135deg,#0ea5e9,#0369a1);box-shadow:0 10px 22px rgba(2,105,161,.4);margin-top:6px}
-.bigbtn:hover{filter:brightness(1.07)}
-.lerr{color:var(--bad);font-size:12.5px;text-align:center;margin-top:10px;min-height:18px;font-weight:700}
-
-/* topbar */
-.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap;
-  background:rgba(8,32,54,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border-bottom:1px solid rgba(255,255,255,.08);color:#e0f2fe}
-.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:15px;color:#fff}
-.brand .ic{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#38bdf8,#0369a1);display:flex;align-items:center;justify-content:center}
-.brand .ic svg{width:20px;height:20px;fill:#fff}
-.brand small{display:block;font-size:10.5px;font-weight:600;color:#7dd3fc}
-.spacer{flex:1}
-.pill{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:20px;font-size:12px;font-weight:800;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);white-space:nowrap}
-.pill .dot{width:8px;height:8px;border-radius:50%}
-.dot.ok{background:#4ade80;box-shadow:0 0 8px #4ade80}
-.dot.bad{background:#f87171}
-.ghost{background:rgba(255,255,255,.09);color:#e0f2fe;padding:8px 14px;font-size:12.5px;border:1px solid rgba(255,255,255,.15)}
-.ghost:hover{background:rgba(255,255,255,.18)}
-
-/* nav tabs */
-.tabs{display:flex;gap:6px;padding:14px 16px 0;max-width:1240px;margin:0 auto;overflow-x:auto}
-.tab{padding:10px 18px;border-radius:14px 14px 0 0;font-size:13.5px;font-weight:800;color:#bae6fd;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-bottom:none;white-space:nowrap}
-.tab.on{background:#f0f9ff;color:var(--brand2)}
-.wrap{max-width:1240px;margin:0 auto;padding:18px 16px 90px;background:transparent}
-.view{display:none}
-.view.on{display:block;animation:pop .3s}
-
-/* stat tiles */
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
-.card{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 12px 34px rgba(0,0,0,.22)}
-.tile{position:relative;overflow:hidden}
-.tile::before{content:'';position:absolute;top:0;right:0;width:56px;height:56px;border-radius:0 0 0 56px;background:linear-gradient(135deg,#e0f2fe,#f0f9ff)}
-.tile .em{font-size:20px}
-.tile b{font-size:26px;display:block;color:var(--brand2);margin-top:4px;position:relative}
-.tile span{color:var(--sub);font-size:12px;font-weight:700;position:relative}
-.panelbox{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 12px 34px rgba(0,0,0,.22);margin-bottom:16px}
-.panelbox h2{font-size:14px;color:#334155;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.panelbox h2 .hdot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
-.flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.muted{color:#94a3b8;font-size:12px}
-
-/* table */
-.tablewrap{background:var(--card);border-radius:20px;box-shadow:0 12px 34px rgba(0,0,0,.22);overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:640px}
-th{background:#f0f9ff;text-align:right;padding:12px;font-size:12px;color:var(--brand2);border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:11px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;font-weight:600}
-tr:hover td{background:#f8fafc}
-.badge{padding:4px 11px;border-radius:9px;font-size:11px;font-weight:800;display:inline-block;white-space:nowrap}
-.b-answered,.b-completed{background:#dcfce7;color:#166534}
-.b-waiting{background:#fef9c3;color:#854d0e}
-.b-missed{background:#fee2e2;color:#991b1b}
-.b-ring{background:#e0e2fe;color:#3730a3}
-.sbtn{padding:6px 12px;font-size:11.5px;border-radius:9px}
-.sbtn.gray{background:var(--soft);color:#475569;border:1px solid var(--line)}
-.sbtn.green{background:#dcfce7;color:#166534}
-.sbtn.red{background:#fee2e2;color:#991b1b}
-.sbtn.blue{background:#e0f2fe;color:#075985}
-
-/* bars chart */
-.bars{display:flex;align-items:flex-end;gap:10px;height:130px;margin-top:14px;padding:0 4px}
-.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
-.bars .b i{width:100%;max-width:44px;background:linear-gradient(180deg,#38bdf8,#0369a1);border-radius:8px 8px 3px 3px;
-  min-height:4px;transition:height .5s;box-shadow:0 4px 10px rgba(2,105,161,.3)}
-.bars .b em{font-style:normal;font-size:10px;color:#94a3b8;font-weight:700}
-.bars .b u{text-decoration:none;font-size:11px;color:#0369a1;font-weight:900}
-.liveq{display:flex;gap:10px;flex-wrap:wrap}
-.liveq .pill2{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:12px 18px;font-size:13px;font-weight:800;color:#334155}
-.liveq .pill2 b{color:var(--brand2);font-size:17px}
-audio{width:100%;height:40px}
-
-/* operators */
-.oprow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.oprow input{border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;background:var(--soft)}
-.oprow input:focus{border-color:var(--brand);background:#fff}
-
-/* settings */
-textarea#rdbc{width:100%;direction:ltr;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;border:1.5px solid var(--line);
-  border-radius:14px;padding:12px;background:#f8fafc;color:#0f172a;min-height:200px;resize:vertical}
-textarea#rdbc:focus{border-color:var(--brand);background:#fff}
-pre#rdbRes{background:#082036;color:#7dd3fc;border-radius:14px;padding:14px;margin-top:12px;font-size:11.5px;direction:ltr;overflow:auto;display:none;max-height:300px}
-
-/* modal */
-.modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:rgba(4,20,36,.55);backdrop-filter:blur(6px)}
-.modal.on{display:flex}
-.mbox{width:440px;max-width:calc(100vw - 32px);background:#fff;border-radius:24px;padding:22px;box-shadow:0 40px 90px rgba(0,0,0,.5);animation:pop .3s}
-.mbox h3{font-size:14.5px;margin-bottom:12px;color:#334155;display:flex;align-items:center;gap:8px}
-.mbox h3 .hdot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(8px);background:#0f172a;color:#fff;
-  padding:11px 20px;border-radius:13px;font-size:13px;font-weight:700;z-index:99;opacity:0;transition:.25s;pointer-events:none}
-.toast.on{opacity:1;transform:translateX(-50%)}
-</style>
+<meta name="theme-color" content="#071a2e">
+<title>مجموعه مدیریتی — کال‌سنتر فیرزو</title>
+<link rel="stylesheet" href="/assets/panel.css">
 </head>
-<body>
+<body class="cc-body">
 
-<!-- ============ LOGIN ============ -->
-<div class="loginwrap" id="login">
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="login" class="loginwrap">
   <div class="login">
-    <div class="llogo"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg></div></div>
-    <h1>پنل مدیریت کال‌سنتر فیرزو</h1>
-    <p class="sub">گزارش تماس‌ها، مشتریان، اپراتورها و تنظیمات</p>
-    <div class="fld"><label>نام کاربری</label><input id="lu" autocomplete="username" placeholder="admin"></div>
-    <div class="fld"><label>رمز عبور</label><input id="lp" type="password" autocomplete="current-password" placeholder="••••••••"></div>
-    <button class="bigbtn" id="lbtn">ورود به پنل</button>
-    <div class="lerr" id="lerr"></div>
+    <div class="llogo"><div class="lavatar">🛰️</div></div>
+    <h1>مجموعه مدیریتی کال‌سنتر</h1>
+    <p class="lsub">فیرزو — نسخه ۳</p>
+    <label>نام کاربری</label><input id="lu" autocomplete="username">
+    <label>رمز عبور</label><input id="lp" type="password" autocomplete="current-password">
+    <button id="lbtn" class="btn p" style="width:100%;margin-top:16px;padding:12px">ورود مدیر</button>
+    <p id="lerr" style="color:#dc2626;font-size:12.5px;margin-top:10px;text-align:center"></p>
   </div>
 </div>
 
-<!-- ============ APP ============ -->
-<div id="app" class="hidden">
-  <div class="topbar">
-    <div class="brand">
-      <div class="ic"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg></div>
-      <div>کال‌سنتر فیرزو<small>پنل مدیریت</small></div>
+<!-- ═══════════ APP SHELL ═══════════ -->
+<div id="app" class="shell hidden">
+  <aside class="sidebar">
+    <div class="brand" style="padding:6px 10px 14px"><div class="logo">🛰️</div><div>فیرزو <small>مجموعه مدیریتی v3</small></div></div>
+    <div class="sidegroup">پایش زنده</div>
+    <button class="sidebtn on" data-tab="dash"><span class="ico">📈</span> داشبورد</button>
+    <button class="sidebtn" data-tab="live"><span class="ico">🔴</span> تماس‌های زنده <b class="bdg hidden" id="bdg_live"></b></button>
+    <button class="sidebtn" data-tab="quality"><span class="ico">📶</span> کیفیت شبکه <b class="bdg hidden" id="bdg_q"></b></button>
+    <div class="sidegroup">مدیریت</div>
+    <button class="sidebtn" data-tab="ops"><span class="ico">🧑‍✈️</span> اپراتورها</button>
+    <button class="sidebtn" data-tab="queue"><span class="ico">🎯</span> صف</button>
+    <button class="sidebtn" data-tab="cdr"><span class="ico">🗃️</span> سوابق تماس</button>
+    <button class="sidebtn" data-tab="missed"><span class="ico">📵</span> ازدست‌رفته و کال‌بک <b class="bdg hidden" id="bdg_cb"></b></button>
+    <div class="sidegroup">مشتری و گزارش</div>
+    <button class="sidebtn" data-tab="crm"><span class="ico">🧑‍💼</span> مشتریان</button>
+    <button class="sidebtn" data-tab="survey"><span class="ico">⭐</span> نظرسنجی</button>
+    <button class="sidebtn" data-tab="health"><span class="ico">🩺</span> سلامت سیستم</button>
+    <button class="sidebtn" data-tab="set"><span class="ico">⚙️</span> تنظیمات</button>
+    <div style="flex:1"></div>
+    <div class="mut" style="padding:8px 10px">مدیریت تیم از یک نقطه</div>
+  </aside>
+
+  <header class="topbar">
+    <span class="pill gray" id="amipill"><span class="dot gray"></span> سانترال</span>
+    <span id="qbadgebox"></span>
+    <div class="spacer"></div>
+    <span class="pill gray" id="clock"></span>
+    <div class="who">
+      <div class="av" id="meav">؟</div>
+      <div><div class="nm" id="menm">—</div><div class="rl" id="merl">مدیر سیستم</div></div>
+      <button class="btn o sm" id="logout">خروج</button>
     </div>
-    <span class="spacer"></span>
-    <span class="pill" id="amip"><span class="dot warn" id="amid"></span><span id="amit">سرور تلفن</span></span>
-    <span class="pill">👤 <b id="uname">—</b></span>
-    <button class="ghost" onclick="logout()">خروج</button>
-  </div>
+  </header>
 
-  <div class="tabs">
-    <button class="tab on" data-v="dash">📊 داشبورد</button>
-    <button class="tab" data-v="calls">📞 تماس‌ها</button>
-    <button class="tab" data-v="cust">👥 مشتریان</button>
-    <button class="tab" data-v="ops" id="tabOps">🎧 اپراتورها</button>
-    <button class="tab" data-v="set" id="tabSet">⚙️ تنظیمات</button>
-  </div>
+  <main class="main">
+    <div class="sysbanner hidden" id="sysbanner"></div>
 
-  <div class="wrap">
-    <!-- DASHBOARD -->
-    <div class="view on" id="v-dash">
-      <div class="cards" id="statCards"></div>
-      <div class="panelbox"><h2><span class="hdot"></span>روند ۷ روز اخیر</h2><div class="bars" id="bars"></div></div>
-      <div class="panelbox"><h2><span class="hdot"></span>وضعیت زنده صف پشتیبانی</h2>
-        <div class="liveq">
-          <div class="pill2">در انتظار: <b id="lqWait">0</b></div>
-          <div class="pill2">اپراتور در صف: <b id="lqOnline">0</b></div>
-          <div class="pill2">طولانی‌ترین انتظار: <b id="lqLong">0s</b></div>
+    <!-- ───── داشبورد ───── -->
+    <section id="tab-dash">
+      <div class="wall" id="wall"></div>
+      <div class="grid2">
+        <div class="card dark">
+          <h3>📈 روند ۷ روز اخیر <span class="leg" style="margin-inline-start:auto"><span><i style="background:#0ea5e9"></i>کل تماس</span><span><i style="background:#10b981"></i>پاسخ‌داده</span><span><i style="background:#ef4444"></i>ازدست‌رفته</span></span></h3>
+          <svg class="chart" id="ch7" viewBox="0 0 600 190" preserveAspectRatio="none"></svg>
         </div>
-        <div id="lqMembers" style="margin-top:14px"></div>
-      </div>
-    </div>
-
-    <!-- CALLS -->
-    <div class="view" id="v-calls">
-      <div class="panelbox flex">
-        <input type="date" id="fdate" style="border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13px;background:var(--soft)">
-        <select id="fstat" style="border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13px;background:var(--soft)">
-          <option value="">همه وضعیت‌ها</option><option value="waiting">در انتظار</option>
-          <option value="answered">پاسخ داده شده</option><option value="completed">تکمیل شده</option>
-          <option value="missed">بی‌پاسخ</option>
-        </select>
-        <button class="sbtn blue" style="padding:9px 18px" onclick="loadCalls()">نمایش</button>
-        <span class="spacer"></span>
-        <button class="sbtn gray" style="padding:9px 18px" onclick="exportCsv()">⬇ دانلود CSV</button>
-      </div>
-      <div class="tablewrap"><table id="callsT"><thead><tr>
-        <th>زمان</th><th>تماس‌گیرنده</th><th>وضعیت</th><th>اپراتور</th><th>انتظار</th><th>مکالمه</th><th>امتیاز</th><th>ضبط</th>
-      </tr></thead><tbody></tbody></table></div>
-    </div>
-
-    <!-- CUSTOMERS -->
-    <div class="view" id="v-cust">
-      <div class="panelbox flex">
-        <input id="csearch" placeholder="جستجوی نام / تلفن / ایمیل…" style="flex:1;min-width:200px;border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;font-size:13px;background:var(--soft)">
-        <button class="sbtn blue" style="padding:10px 18px" onclick="loadCust()">جستجو</button>
-      </div>
-      <div class="tablewrap"><table id="custT"><thead><tr>
-        <th>نام</th><th>تلفن</th><th>ایمیل</th><th>IP</th><th>تعداد تماس</th><th>آخرین تماس</th><th>آخرین بازدید</th>
-      </tr></thead><tbody></tbody></table></div>
-    </div>
-
-    <!-- OPERATORS -->
-    <div class="view" id="v-ops">
-      <div class="panelbox">
-        <h2><span class="hdot"></span>افزودن کاربر جدید <span class="muted">(داخلی‌های آماده: 1000 تا 1005)</span></h2>
-        <div class="oprow">
-          <input id="ou" placeholder="نام کاربری" style="width:130px">
-          <input id="op" placeholder="رمز عبور" style="width:130px">
-          <input id="on" placeholder="نام و نام‌خانوادگی" style="width:170px">
-          <input id="oe" placeholder="داخلی (1002)" style="width:110px" dir="ltr">
-          <select id="or" style="border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;background:var(--soft)">
-            <option value="operator">اپراتور</option><option value="admin">ادمین</option>
-          </select>
-          <button class="sbtn green" style="padding:9px 18px" onclick="addOp()">+ افزودن</button>
+        <div class="card dark">
+          <h3>🕐 پرترافیک‌ترین ساعات امروز</h3>
+          <svg class="chart" id="chh" viewBox="0 0 600 190" preserveAspectRatio="none"></svg>
         </div>
       </div>
-      <div class="tablewrap"><table id="opsT"><thead><tr>
-        <th>نام</th><th>نام کاربری</th><th>داخلی</th><th>نقش</th><th>فعال</th><th>عضویت در صف</th><th>تغییر رمز</th>
-      </tr></thead><tbody></tbody></table></div>
-    </div>
-
-    <!-- SETTINGS -->
-    <div class="view" id="v-set">
-      <div class="panelbox">
-        <h2><span class="hdot"></span>اتصال ریموت دیتابیس (CRM)</h2>
-        <p class="muted" style="margin-bottom:10px">درایور SQLite به‌صورت پیش‌فرض به دیتابیس سایت firuzo.online وصل است و فقط-خواندنی است. برای دیتابیس MySQL دیگر، درایور را mysql کنید.</p>
-        <textarea id="rdbc" rows="12"></textarea>
-        <div class="flex" style="margin-top:12px">
-          <button class="sbtn green" style="padding:10px 20px" onclick="saveRdb()">💾 ذخیره تنظیمات</button>
-          <input id="testPhone" placeholder="تلفن برای تست اتصال" dir="ltr" style="border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13px;background:var(--soft);width:200px">
-          <button class="sbtn blue" style="padding:10px 20px" onclick="testRdb()">🔌 تست اتصال</button>
+      <div class="grid2" style="margin-top:14px">
+        <div class="card dark"><h3>🧑‍✈️ عملکرد اپراتورهای امروز</h3>
+          <div class="tblwrap"><table class="tbl"><thead><tr><th>اپراتور</th><th>پاسخ‌داده</th><th>AHT</th><th>امتیاز</th><th>انتقال</th></tr></thead><tbody id="d_perf"></tbody></table></div>
         </div>
-        <pre id="rdbRes"></pre>
+        <div class="card dark"><h3>🔔 هشدارها و رویدادهای زنده</h3><div id="d_feed" class="mut">بدون هشدار فعال</div></div>
       </div>
-    </div>
-  </div>
+    </section>
+
+    <!-- ───── تماس‌های زنده ───── -->
+    <section id="tab-live" class="hidden">
+      <div class="kpis" id="live_kpi"></div>
+      <div class="card dark">
+        <h3>🔴 تماس‌های در جریان <button class="btn w sm more" id="live_ref">↻ بروزرسانی</button></h3>
+        <div class="tblwrap"><table class="tbl"><thead><tr>
+          <th>تماس‌گیرنده</th><th>اپراتور</th><th>وضعیت</th><th>مدت</th><th>شنود / راهنمایی / ورود</th>
+        </tr></thead><tbody id="live_rows"></tbody></table></div>
+        <div class="row" style="margin-top:12px">
+          <label class="row" style="gap:6px;font-size:12px"><input type="checkbox" id="autoans" style="width:auto"> پاسخ خودکار تماس‌های شنود (تلفن مدیر)</label>
+          <span class="mut">برای شنود، تلفن داخلی مدیر (۱۰۰۰) زنگ می‌خورد؛ با پاسخ شما، شنود آغاز می‌شود.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───── اپراتورها ───── -->
+    <section id="tab-ops" class="hidden">
+      <div class="card dark">
+        <h3>🧑‍✈️ اپراتورها <button class="btn p sm more" id="op_add">+ اپراتور جدید</button></h3>
+        <div class="tblwrap"><table class="tbl"><thead><tr>
+          <th>نام</th><th>نام کاربری</th><th>داخلی</th><th>وضعیت زنده</th><th>صف</th><th>عملکرد امروز</th><th>مدیریت</th>
+        </tr></thead><tbody id="op_rows"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ───── صف ───── -->
+    <section id="tab-queue" class="hidden">
+      <div class="wall" id="q_wall"></div>
+      <div class="card dark">
+        <h3>🎯 اعضای صف پشتیبانی <button class="btn w sm more" id="q_ref">↻</button></h3>
+        <div class="tblwrap"><table class="tbl"><thead><tr>
+          <th>عضو</th><th>داخلی</th><th>عضویت صف</th><th>تغییر</th>
+        </tr></thead><tbody id="q_rows"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ───── CDR ───── -->
+    <section id="tab-cdr" class="hidden">
+      <div class="card dark">
+        <h3>🗃️ سوابق تماس (CDR)</h3>
+        <div class="filterbar">
+          <input type="date" id="cd_from" style="color-scheme:dark">
+          <span class="mut">تا</span><input type="date" id="cd_to" style="color-scheme:dark">
+          <select id="cd_status"><option value="">همه وضعیت‌ها</option><option value="completed">تکمیل</option><option value="answered">پاسخ‌داده</option><option value="missed">ازدست‌رفته</option><option value="waiting">در انتظار</option></select>
+          <input id="cd_search" placeholder="موبایل/نام…" style="min-width:150px">
+          <button class="btn p sm" id="cd_go">جستجو</button>
+          <a class="btn w sm" id="cd_csv" href="#" target="_blank">⬇ CSV</a>
+        </div>
+        <div class="tblwrap"><table class="tbl"><thead><tr>
+          <th>زمان</th><th>تماس‌گیرنده</th><th>وضعیت</th><th>نتیجه</th><th>اپراتور</th><th>انتظار</th><th>مدت</th><th>⭐</th><th></th>
+        </tr></thead><tbody id="cd_rows"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ───── ازدست‌رفته و کال‌بک ───── -->
+    <section id="tab-missed" class="hidden">
+      <div class="grid2">
+        <div class="card dark">
+          <h3>📵 تماس‌های ازدست‌رفته</h3>
+          <div class="tblwrap"><table class="tbl"><thead><tr>
+            <th>زمان</th><th>تماس‌گیرنده</th><th>انتظار</th><th>کال‌بک</th><th></th>
+          </tr></thead><tbody id="ms_rows"></tbody></table></div>
+        </div>
+        <div class="card dark">
+          <h3>🔔 تسک‌های کال‌بک</h3>
+          <div class="row" style="margin-bottom:10px">
+            <button class="btn p sm" id="cb_new">+ کال‌بک دستی</button>
+            <button class="btn w sm" id="cb_ref">↻</button>
+          </div>
+          <div class="tblwrap"><table class="tbl"><thead><tr>
+            <th>شماره</th><th>مسئول</th><th>وضعیت</th><th>زمان</th><th>اقدام</th>
+          </tr></thead><tbody id="cb_rows"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───── کیفیت شبکه ───── -->
+    <section id="tab-quality" class="hidden">
+      <div class="kpis" id="qy_kpi"></div>
+      <div class="grid2">
+        <div class="card dark">
+          <h3>📶 کیفیت به تفکیک داخلی (۲۴ ساعت)</h3>
+          <div class="tblwrap"><table class="tbl"><thead><tr>
+            <th>داخلی</th><th>MOS</th><th>وضعیت</th><th>تأخیر</th><th>جیتر</th><th>اتلاف</th><th>نمونه</th>
+          </tr></thead><tbody id="qy_rows"></tbody></table></div>
+        </div>
+        <div class="card dark">
+          <h3>📉 روند ۱۲ ساعت اخیر (MOS / اتلاف)</h3>
+          <svg class="chart" id="qy_chart" viewBox="0 0 600 190" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+      <div class="card dark" style="margin-top:14px">
+        <h3>🚨 هشدارهای کیفیت</h3>
+        <div class="tblwrap"><table class="tbl"><thead><tr><th>زمان</th><th>داخلی</th><th>MOS</th><th>اتلاف</th><th>تأخیر</th><th>جیتر</th></tr></thead><tbody id="qy_alerts"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ───── مشتریان ───── -->
+    <section id="tab-crm" class="hidden">
+      <div class="card dark">
+        <h3>🧑‍💼 مشتریان</h3>
+        <div class="filterbar">
+          <input id="c_search" placeholder="جستجو: نام / موبایل / ایمیل…">
+          <button class="btn p sm" id="c_go">جستجو</button>
+        </div>
+        <div class="tblwrap"><table class="tbl"><thead><tr>
+          <th>نام</th><th>موبایل</th><th>ایمیل</th><th>تعداد تماس</th><th>آخرین تماس</th><th></th>
+        </tr></thead><tbody id="c_rows"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ───── نظرسنجی ───── -->
+    <section id="tab-survey" class="hidden">
+      <div class="grid2">
+        <div class="card dark">
+          <h3>⭐ توزیع امتیازها (۳۰ روز)</h3>
+          <svg class="chart" id="sv_chart" viewBox="0 0 600 190" preserveAspectRatio="none"></svg>
+          <div id="sv_avg" style="text-align:center;font-size:22px;font-weight:900;margin-top:6px"></div>
+        </div>
+        <div class="card dark">
+          <h3>🧑‍✈️ امتیاز به تفکیک اپراتور</h3>
+          <div class="tblwrap"><table class="tbl"><thead><tr><th>اپراتور</th><th>میانگین</th><th>تعداد</th></tr></thead><tbody id="sv_ops"></tbody></table></div>
+        </div>
+      </div>
+      <div class="card dark" style="margin-top:14px">
+        <h3>🆕 نظرسنجی‌های اخیر</h3>
+        <div class="tblwrap"><table class="tbl"><thead><tr><th>زمان</th><th>تماس‌گیرنده</th><th>اپراتور</th><th>امتیاز</th><th>منبع</th></tr></thead><tbody id="sv_rows"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ───── سلامت سیستم ───── -->
+    <section id="tab-health" class="hidden">
+      <div class="kpis" id="hl_kpi"></div>
+      <div class="card dark">
+        <h3>🩺 وضعیت زیرساخت <button class="btn w sm more" id="hl_ref">↻</button></h3>
+        <div id="hl_body"></div>
+      </div>
+    </section>
+
+    <!-- ───── تنظیمات ───── -->
+    <section id="tab-set" class="hidden">
+      <div class="grid2">
+        <div class="card dark">
+          <h3>🗄️ اتصال به پایگاه‌داده اصلی (CRM)</h3>
+          <p class="mut" style="margin-bottom:10px">خواندن سفارش‌ها برای نمایش در تماس‌ها — فقط-خواندنی.</p>
+          <label>Host</label><input id="rd_host" placeholder="127.0.0.1">
+          <div class="grid2" style="margin-top:8px">
+            <div><label>Port</label><input id="rd_port" placeholder="3306"></div>
+            <div><label>Database</label><input id="rd_db" placeholder="ecardoq192"></div>
+          </div>
+          <div class="grid2" style="margin-top:8px">
+            <div><label>User</label><input id="rd_user"></div>
+            <div><label>Password</label><input id="rd_pass" type="password"></div>
+          </div>
+          <button class="btn p" id="rd_save" style="margin-top:12px">ذخیره و تست</button>
+          <div id="rd_res" class="mut" style="margin-top:8px"></div>
+        </div>
+        <div class="card dark">
+          <h3>🔐 امنیت حساب</h3>
+          <label>رمز فعلی</label><input type="password" id="p_old">
+          <label style="margin-top:8px">رمز جدید</label><input type="password" id="p_new">
+          <button class="btn p" id="p_btn" style="margin-top:12px">تغییر رمز</button>
+          <h3 style="margin-top:20px">📞 داخلی مدیر</h3>
+          <div class="mut">داخلی SIP شما برای شنود تماس‌ها استفاده می‌شود. با «پاسخ خودکار» در تب تماس‌های زنده، شنود بدون کلیک آغاز می‌شود.</div>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
 
-<!-- recording modal -->
-<div class="modal" id="recModal">
-  <div class="mbox">
-    <h3><span class="hdot"></span>پخش ضبط تماس</h3>
-    <audio id="recAudio" controls style="width:100%"></audio>
-    <div class="flex" style="margin-top:14px;justify-content:flex-end">
-      <button class="sbtn gray" style="padding:9px 18px" onclick="closeRec()">بستن</button>
-    </div>
-  </div>
-</div>
+<!-- ═══════════ MODALS ═══════════ -->
+<div class="mback" id="mOp"><div class="mbox">
+  <h3 id="op_m_title">اپراتور جدید <button class="mx" data-close="mOp">✕</button></h3>
+  <input type="hidden" id="op_m_id">
+  <label>نام و نام خانوادگی</label><input id="op_m_name">
+  <label style="margin-top:8px">نام کاربری</label><input id="op_m_user">
+  <label style="margin-top:8px">رمز عبور</label><input id="op_m_pass" type="password" placeholder="برای تغییر رمز پر کنید">
+  <label style="margin-top:8px">داخلی SIP (۱۰۰۰-۱۰۰۵)</label><input id="op_m_ext" inputmode="numeric" maxlength="4">
+  <label style="margin-top:8px">نقش</label><select id="op_m_role"><option value="operator">اپراتور</option><option value="admin">مدیر</option></select>
+  <button class="btn p" id="op_m_save" style="margin-top:14px;width:100%">ذخیره</button>
+</div></div>
 
-<div class="toast" id="toast"></div>
+<div class="mback" id="mCust"><div class="mbox" style="width:560px">
+  <h3>🧑‍💼 پرونده مشتری <button class="mx" data-close="mCust">✕</button></h3>
+  <div id="custBody"></div>
+</div></div>
+
+<div class="mback" id="mRec"><div class="mbox" style="width:540px">
+  <h3>🎧 ضبط مکالمه <button class="mx" data-close="mRec">✕</button></h3>
+  <div id="recBody"></div>
+</div></div>
+
+<div class="mback" id="mCall"><div class="mbox" style="width:560px">
+  <h3>☎️ جزئیات تماس <button class="mx" data-close="mCall">✕</button></h3>
+  <div id="callBody"></div>
+</div></div>
+
+<div class="mback" id="mCb"><div class="mbox">
+  <h3>🔔 کال‌بک جدید <button class="mx" data-close="mCb">✕</button></h3>
+  <label>شماره تماس</label><input id="cb_phone" class="ltr">
+  <label style="margin-top:8px">نام مشتری</label><input id="cb_name">
+  <label style="margin-top:8px">دلیل / توضیح</label><input id="cb_reason">
+  <label style="margin-top:8px">مسئول (داخلی)</label><input id="cb_to" inputmode="numeric" maxlength="4">
+  <button class="btn p" id="cb_save" style="margin-top:14px;width:100%">ثبت تسک</button>
+</div></div>
+
+<div id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="/assets/panel-common.js"></script>
 <script>
-var T = localStorage.getItem("cc_token") || "";
-var sock = null, callsCache = [];
-
-function $(id){ return document.getElementById(id); }
-function toast(m){ var t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("on")},2500); }
-async function api(path, opts){
-  opts = opts||{};
-  opts.headers = Object.assign({"Authorization":"Bearer "+T,"Content-Type":"application/json"}, opts.headers||{});
-  var r = await fetch(path, opts);
-  if(r.status===401){ logout(); throw new Error("unauthorized"); }
-  return r.json();
-}
-function logout(){ localStorage.removeItem("cc_token"); T=""; location.reload(); }
+/* ============================================================
+ * Admin Suite v3 — firuzo.online call center
+ * ============================================================ */
+var ME = null, T = CC.T;
+var $ = function (id) { return document.getElementById(id); };
+var teamCache = [], presenceOnline = [], lastLive = [], unreadQ = 0, unreadCb = 0, unreadQA = 0;
 
 /* ---------- login ---------- */
-$("lbtn").addEventListener("click", function(){
+$("lbtn").addEventListener("click", doLogin);
+$("lp").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
+async function doLogin() {
   $("lbtn").disabled = true; $("lerr").textContent = "";
-  fetch("/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({username:$("lu").value.trim(),password:$("lp").value})})
-  .then(function(r){ return r.json(); }).then(function(d){
-    if(d.token){ T=d.token; localStorage.setItem("cc_token",T); boot(); }
-    else $("lerr").textContent = d.error||"خطا";
-  }).catch(function(){ $("lerr").textContent="خطای شبکه"; });
+  try {
+    var r = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: $("lu").value.trim(), password: $("lp").value }) });
+    var d = await r.json();
+    if (!r.ok) throw new Error(d.error || "خطا");
+    localStorage.setItem("cc_token", d.token); location.reload();
+  } catch (e) { $("lerr").textContent = e.message; }
   $("lbtn").disabled = false;
-});
+}
 
 /* ---------- boot ---------- */
-async function boot(){
-  var me = await api("/api/auth/me").catch(function(){ return null; });
-  if(!me || !me.id) return;
+(async function () {
+  if (!T) return;
+  try { ME = await CC.api("/api/auth/me"); } catch (e) { return; }
+  CC.setMe(ME);
   $("login").classList.add("hidden"); $("app").classList.remove("hidden");
-  $("uname").textContent = me.name;
-  if(me.role!=="admin"){ $("tabOps").classList.add("hidden"); $("tabSet").classList.add("hidden"); }
-  loadStats(); loadCalls(); loadOps(); loadRdb(); loadCust(); connectWs();
-  setInterval(loadStats, 30000);
-}
+  $("menm").textContent = ME.name; $("meav").textContent = (ME.name || "؟").charAt(0);
+  CC.clock($("clock"));
+  initTabs(); initSocket(); bindUI();
+  loadDash(); loadOps(); loadQueue(); loadMissed(); loadQuality(); loadHealth(); loadSettings();
+  setInterval(loadDash, 30000); setInterval(loadLive, 8000); setInterval(loadMissed, 45000);
+  loadSip();
+})();
 
 /* ---------- tabs ---------- */
-document.querySelectorAll(".tab").forEach(function(t){
-  t.addEventListener("click", function(){
-    document.querySelectorAll(".tab").forEach(function(x){ x.classList.toggle("on", x===t); });
-    document.querySelectorAll(".view").forEach(function(v){ v.classList.remove("on"); });
-    $("v-"+t.dataset.v).classList.add("on");
-    if(t.dataset.v==="calls") loadCalls();
-    if(t.dataset.v==="cust") loadCust();
-    if(t.dataset.v==="ops") loadOps();
+function initTabs() {
+  document.querySelectorAll(".sidebtn[data-tab]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll(".sidebtn").forEach(function (x) { x.classList.remove("on"); });
+      b.classList.add("on");
+      ["dash","live","quality","ops","queue","cdr","missed","crm","survey","health","set"].forEach(function (t) { $("tab-" + t).classList.toggle("hidden", t !== b.dataset.tab); });
+      if (b.dataset.tab === "live") loadLive();
+      if (b.dataset.tab === "cdr") { setCdDefaults(); loadCdr(); }
+      if (b.dataset.tab === "survey") loadSurvey();
+      if (b.dataset.tab === "missed") { loadMissed(); unreadCb = 0; setBdg("bdg_cb", 0); }
+      if (b.dataset.tab === "quality") { loadQuality(); unreadQA = 0; setBdg("bdg_q", 0); }
+      if (b.dataset.tab === "crm") loadCustomers();
+    });
   });
-});
-
-/* ---------- socket live ---------- */
-function connectWs(){
-  sock = io({auth:{token:T}});
-  sock.on("ami:status", function(d){
-    $("amid").className = "dot "+(d.connected?"ok":"bad");
-    $("amit").textContent = d.connected ? "سرور تلفن متصل" : "سرور تلفن قطع!";
-  });
-  sock.on("queue:status", function(d){
-    $("lqWait").textContent = d.waiting;
-    $("lqOnline").textContent = d.online;
-    $("lqLong").textContent = d.longest_wait+"s";
-  });
-  sock.on("queue:members", function(d){
-    var ms = (d&&d.members)||[];
-    $("lqMembers").innerHTML = ms.length ? '<div class="flex">'+ms.map(function(m){
-      return '<span class="badge '+(m.in_queue?'b-answered':'b-missed')+'">'+m.name+(m.in_queue?' ✓':'')+'</span>';
-    }).join("")+'</div>' : '';
-  });
-  sock.on("call:new", function(){ toast("☎ تماس جدید ثبت شد"); loadStats(); if(isVisible("calls")) loadCalls(); });
-  sock.on("call:update", function(d){
-    if(d.status){ loadStats(); if(isVisible("calls")) loadCalls(); }
-  });
+  document.querySelectorAll("[data-close]").forEach(function (x) { x.addEventListener("click", function () { CC.modal(x.dataset.close, false); }); });
 }
-function isVisible(v){ var el=$("v-"+v); return el && el.classList.contains("on"); }
+function setBdg(id, n) { var b = $(id); if (!b) return; if (n > 0) { b.classList.remove("hidden"); b.textContent = CC.faNum(n); } else b.classList.add("hidden"); }
+
+/* ---------- socket ---------- */
+function initSocket() {
+  CC.connectSocket({
+    onConnect: function () { CC.toast("اتصال زنده برقرار شد", "ok"); },
+    onPresence: function (p) { presenceOnline = p.online || []; renderOps(); },
+    onAlert: function (a) { feedPush(a.text); setBdg("bdg_q", ++unreadQA); },
+    onChat: function () {},
+    onQuality: function (a) { feedPush("📶 کیفیت ضعیف — داخلی " + CC.faNum(a.ext) + " (MOS " + CC.faNum((a.mos || 0).toFixed(1)) + ")"); setBdg("bdg_q", ++unreadQA); },
+    onCallback: function () { setBdg("bdg_cb", ++unreadCb); loadMissed(); },
+  });
+  CC.sock.on("ami:status", function (d) {
+    $("amipill").className = "pill " + (d.connected ? "ok" : "bad");
+    $("amipill").innerHTML = '<span class="dot ' + (d.connected ? "ok" : "bad pulse") + '"></span> ' + (d.connected ? "سانترال متصل" : "سانترال قطع!");
+  });
+  CC.sock.on("live:update", function (d) { lastLive = d.calls || []; renderLive(); });
+  CC.sock.on("call:new", function () { loadDash(); });
+  CC.sock.on("call:update", function () { loadDash(); });
+  CC.sock.on("queue:status", function (d) {
+    $("q_wall").innerHTML = wallHTML([
+      { v: CC.faNum(d.waiting), l: "در انتظار در صف", c: d.waiting > 3 ? "hot" : "" },
+      { v: CC.faNum(d.online), l: "آماده پاسخ", c: "good" },
+      { v: CC.faNum(d.longest_wait), l: "طولانی‌ترین انتظار (ث)", c: d.longest_wait > 60 ? "hot" : "cool" },
+    ]);
+  });
+  CC.sock.on("queue:members", function () { loadQueue(); });
+  CC.sock.on("callback:update", function () { loadMissed(); });
+}
 
 /* ---------- dashboard ---------- */
-function card(l,v,em){ return '<div class="card tile"><div class="em">'+em+'</div><span>'+l+'</span><b>'+v+'</b></div>'; }
-async function loadStats(){
-  var d = await api("/api/stats");
-  var t = d.today||{};
-  $("statCards").innerHTML =
-    card("تماس امروز", t.total||0,"☎")+card("پاسخ داده شده", t.answered||0,"✓")+card("بی‌پاسخ", t.missed||0,"✕")+
-    card("میانگین انتظار", (t.avg_wait||0)+" ثانیه","⏱")+card("میانگین امتیاز", (t.avg_rating||0),"★");
-  var mx = Math.max(1, ...(d.last7||[]).map(function(x){ return x.c; }));
-  $("bars").innerHTML = (d.last7||[]).map(function(x){
-    var day = String(x.d instanceof Date ? x.d.toISOString() : x.d).slice(5,10);
-    return '<div class="b"><u>'+(x.c||0)+'</u><i style="height:'+Math.max(4,(x.c/mx*80))+'%"></i><em>'+day+'</em></div>';
-  }).join("") || '<div class="muted">داده‌ای نیست</div>';
+function wallHTML(cells) {
+  return cells.map(function (c) { return '<div class="wcell ' + (c.c || "") + '"><div class="v">' + c.v + '</div><div class="l">' + CC.esc(c.l) + "</div></div>"; }).join("");
+}
+async function loadDash() {
+  try {
+    var w = await CC.api("/api/wallboard");
+    $("wall").innerHTML = wallHTML([
+      { v: CC.faNum(w.waiting), l: "در انتظار", c: w.waiting > 0 ? "hot" : "good" },
+      { v: CC.faNum(w.active), l: "تماس فعال", c: "cool" },
+      { v: CC.faNum(w.ringing), l: "در حال زنگ", c: w.ringing ? "hot" : "" },
+      { v: CC.faNum(w.agentsReady), l: "اپراتور آماده", c: w.agentsReady ? "good" : "hot" },
+      { v: CC.faNum(w.sl) + "٪", l: "سطح خدمات (SL 20s)", c: w.sl >= 80 ? "good" : w.sl >= 60 ? "" : "hot" },
+      { v: CC.faNum(w.answered), l: "پاسخ‌داده امروز", c: "good" },
+      { v: CC.faNum(w.missed), l: "ازدست‌رفته امروز", c: w.missed ? "hot" : "good" },
+      { v: CC.faDur(w.avg_wait), l: "میانگین انتظار (ث)" },
+      { v: CC.faDur(w.aht), l: "میانگین مکالمه (ث)" },
+      { v: w.avg_rating ? w.avg_rating + " ⭐" : "—", l: "رضایت امروز" },
+    ]);
+    var s = await CC.api("/api/stats");
+    barChart($("ch7"), s.last7.map(function (r) { return { label: CC.faNum(String(r.d).slice(8)) , a: r.c, b: r.a || 0, c: r.m || 0 }; }), ["#0ea5e9", "#10b981", "#ef4444"]);
+    barChart($("chh"), s.hourly.map(function (r) { return { label: CC.faNum(r.h), a: r.c, b: 0, c: r.m || 0 }; }), ["#8b5cf6", "", "#f59e0b"]);
+    var perf = await CC.api("/api/operator/perf");
+    $("d_perf").innerHTML = perf.length ? perf.map(function (p) {
+      return "<tr><td><b>" + CC.esc(p.name) + "</b></td><td class='num'>" + CC.faNum(p.answered) + "</td><td class='num'>" + CC.faDur(p.aht) + "</td><td>" + (p.rating ? CC.faNum(p.rating) + " ⭐" : "—") + '</td><td class="num">' + CC.faNum(p.transfers || 0) + "</td></tr>";
+    }).join("") : '<tr><td colspan="5" class="empty">امروز تماسی ثبت نشده</td></tr>';
+  } catch (e) {}
+}
+function barChart(svg, data, colors) {
+  var W = 600, H = 190, pad = 26, bw = Math.max(10, (W - pad * 2) / Math.max(1, data.length) - 6);
+  var max = Math.max(1, ...data.map((d) => Math.max(d.a, d.b, d.c)));
+  var out = '<line class="axis" x1="' + pad + '" y1="' + (H - pad) + '" x2="' + (W - pad) + '" y2="' + (H - pad) + '"/>';
+  data.forEach(function (d, i) {
+    var x = pad + i * ((W - pad * 2) / Math.max(1, data.length)) + 3;
+    var bars = [["a", d.a, 0], ["b", d.b, -1], ["c", d.c, -2]].filter(function (z) { return z[1] > 0; });
+    bars.forEach(function (z, j) {
+      var h = (H - pad * 2) * z[1] / max;
+      out += '<rect x="' + (x + j * (bw / bars.length)) + '" y="' + (H - pad - h) + '" width="' + (bw / bars.length - 1.5) + '" height="' + Math.max(2, h) + '" rx="3" fill="' + colors[j * 2] + '" opacity=".9"/>';
+    });
+    out += '<text class="lbl" x="' + (x + bw / 2 - 6) + '" y="' + (H - 8) + '">' + d.label + "</text>";
+  });
+  svg.innerHTML = out;
+}
+function feedPush(text) {
+  var f = $("d_feed");
+  if (f.textContent.startsWith("بدون")) f.innerHTML = "";
+  var div = document.createElement("div");
+  div.textContent = "• " + text + " — " + CC.faTime(new Date().toISOString());
+  f.prepend(div);
+  while (f.children.length > 12) f.lastChild.remove();
+  showBanner(text, "warn");
 }
 
-/* ---------- calls ---------- */
-function stBadge(s){var m={waiting:"در انتظار",answered:"پاسخ داده شد",completed:"تکمیل شد",missed:"بی‌پاسخ",ringing:"زنگ"};
-  return '<span class="badge b-'+s+'">'+(m[s]||s)+'</span>'}
-async function loadCalls(){
-  var p = new URLSearchParams({date:$("fdate").value||"",status:$("fstat").value||""});
-  var d = await api("/api/calls?"+p);
-  callsCache = d||[];
-  document.querySelector("#callsT tbody").innerHTML = callsCache.map(function(c){
-    var rec = c.recording_path
-      ? '<button class="sbtn blue" onclick="playRec(\''+c.unique_id+'\')">▶ پخش</button>' : '<span class="muted">—</span>';
-    return "<tr><td>"+(c.started_at||"").slice(5,16)+"</td>"
-      +"<td>"+(c.visitor_name||"ناشناس")+"<br><span class='muted' dir='ltr'>"+(c.visitor_phone||"")+"</span></td>"
-      +"<td>"+stBadge(c.status)+"</td><td>"+(c.operator_ext||"—")+"</td>"
-      +"<td>"+(c.wait_sec||0)+"s</td><td>"+(c.duration_sec||0)+"s</td>"
-      +"<td>"+(c.survey_rating?"<span style='color:#f59e0b'>"+"★".repeat(c.survey_rating)+"</span>":"—")+"</td>"
-      +"<td>"+rec+"</td></tr>";
-  }).join("") || "<tr><td colspan=8 class='muted' style='text-align:center;padding:30px'>تماسی ثبت نشده</td></tr>";
+/* ---------- live calls ---------- */
+async function loadLive() {
+  try {
+    var d = await CC.api("/api/live");
+    lastLive = d.calls || [];
+    renderLive();
+    $("live_kpi").innerHTML =
+      '<div class="kpi info"><div class="v">' + CC.faNum(d.summary.active) + '</div><div class="l">مکالمه فعال</div></div>' +
+      '<div class="kpi warn"><div class="v">' + CC.faNum(d.summary.ringing) + '</div><div class="l">در حال زنگ</div></div>' +
+      '<div class="kpi"><div class="v">' + CC.faNum(d.summary.visitorChans) + '</div><div class="l">کانال مشتری</div></div>' +
+      '<div class="kpi"><div class="v">' + CC.faNum(d.summary.agentChans) + '</div><div class="l">کانال اپراتور</div></div>';
+  } catch (e) {}
 }
-function playRec(id){
-  $("recAudio").src = "/api/records/"+id;
-  $("recModal").classList.add("on");
-  $("recAudio").play().catch(function(){});
+function renderLive() {
+  var n = lastLive.length; setBdg("bdg_live", n);
+  var tb = $("live_rows"); if (!tb) return;
+  tb.innerHTML = n ? lastLive.map(function (c) {
+    var dur = c.ringing ? '<span class="bdg2 warn">زنگ…</span>' : "<span class='num'>" + CC.faDur(c.talkSec) + "</span>";
+    return "<tr><td><b class='ltr'>" + CC.esc((c.visitor && (c.visitor.name || c.visitor.caller)) || "—") + "</b></td>" +
+      "<td>داخلی " + CC.faNum((c.agent && c.agent.ext) || "—") + "</td>" +
+      '<td>' + (c.ringing ? '<span class="bdg2 warn">زنگ می‌خورد</span>' : '<span class="bdg2 ok">در مکالمه</span>') + "</td>" +
+      "<td>" + dur + "</td>" +
+      '<td><button class="btn w sm" data-mon="listen" data-b="' + CC.esc(c.bridge) + '">🎧 شنود</button> ' +
+      '<button class="btn w sm" data-mon="whisper" data-b="' + CC.esc(c.bridge) + '">🤫 راهنمایی</button> ' +
+      '<button class="btn w sm" data-mon="barge" data-b="' + CC.esc(c.bridge) + '">📢 ورود</button></td></tr>';
+  }).join("") : '<tr><td colspan="5" class="empty">تماس فعالی در جریان نیست</td></tr>';
+  tb.querySelectorAll("[data-mon]").forEach(function (b) {
+    b.addEventListener("click", async function () {
+      try {
+        await CC.api("/api/call/monitor", { method: "POST", body: JSON.stringify({ bridge: b.dataset.b, mode: b.dataset.mon }) });
+        CC.toast(b.dataset.mon === "listen" ? "شنود آغاز شد — با تلفن مدیر پاسخ دهید" : b.dataset.mon === "whisper" ? "راهنمایی فعال شد — فقط اپراتور شما را می‌شنود" : "ورود به تماس فعال شد", "ok");
+      } catch (e) { CC.toast(e.message, "err"); }
+    });
+  });
 }
-function closeRec(){ $("recModal").classList.remove("on"); $("recAudio").pause(); }
-$("recModal").addEventListener("click", function(e){ if(e.target===this) closeRec(); });
-function exportCsv(){
-  var rows=[["زمان","نام","تلفن","وضعیت","اپراتور","انتظار","مکالمه","امتیاز"]];
-  callsCache.forEach(function(c){ rows.push([c.started_at,c.visitor_name,c.visitor_phone,c.status,c.operator_ext,c.wait_sec,c.duration_sec,c.survey_rating]); });
-  var csv = "\ufeff"+rows.map(function(r){ return r.join(","); }).join("\n");
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download="calls.csv"; a.click();
-}
-
-/* ---------- customers ---------- */
-async function loadCust(){
-  var d = await api("/api/customers?s="+encodeURIComponent($("csearch").value||""));
-  document.querySelector("#custT tbody").innerHTML = (d||[]).map(function(c){
-    return "<tr><td>"+(c.name||"—")+"</td><td dir='ltr'>"+(c.phone||"—")+"</td><td dir='ltr'>"+(c.email||"—")+"</td>"
-      +"<td dir='ltr'>"+(c.ip||"—")+"</td><td>"+(c.call_count||0)+"</td>"
-      +"<td class='muted'>"+(String(c.last_call||"").slice(5,16)||"—")+"</td><td class='muted'>"+String(c.last_seen||"").slice(5,16)+"</td></tr>";
-  }).join("") || "<tr><td colspan=7 class='muted' style='text-align:center;padding:30px'>مشتری‌ای یافت نشد</td></tr>";
-}
-$("csearch").addEventListener("keydown", function(e){ if(e.key==="Enter") loadCust(); });
 
 /* ---------- operators ---------- */
-async function loadOps(){
-  var d = await api("/api/operators");
-  document.querySelector("#opsT tbody").innerHTML = (d||[]).map(function(o){
-    return "<tr><td>"+o.name+"</td><td dir='ltr'>"+o.username+"</td><td>"+(o.sip_ext||"—")+"</td><td>"+(o.role==="admin"?"ادمین":"اپراتور")+"</td>"
-      +"<td><button class='sbtn "+(o.active?"green":"red")+"' onclick='toggleOp("+o.id+","+!o.active+")'>"+(o.active?"فعال":"غیرفعال")+"</button></td>"
-      +"<td>"+(o.sip_ext?'<button class="sbtn gray" onclick="queueToggle(\''+o.sip_ext+'\')">تغییر وضعیت صف</button>':"—")+"</td>"
-      +"<td class='oprow'><input type='password' placeholder='رمز جدید' style='width:100px' id='np"+o.id+"'><button class='sbtn gray' onclick='setPass("+o.id+")'>ثبت</button></td></tr>";
-  }).join("");
+async function loadOps() {
+  try {
+    var rows = await CC.api("/api/operators");
+    teamCache = rows;
+    renderOps();
+    var perf = await CC.api("/api/operator/perf");
+    var perfMap = {}; (perf || []).forEach(function (p) { perfMap[String(p.sip_ext || p.ext || "")] = p; });
+    $("op_rows").innerHTML = rows.map(function (o) {
+      var pf = perfMap[String(o.sip_ext)] || {};
+      var st = o.on_call ? '<span class="pill info"><span class="dot pulse"></span> در تماس</span>'
+        : o.pause_reason ? '<span class="pill warn">☕ ' + CC.esc(o.pause_reason) + "</span>"
+        : presenceOnline.indexOf(String(o.sip_ext)) >= 0 ? '<span class="pill ok"><span class="dot ok"></span> آنلاین</span>'
+        : '<span class="pill gray">آفلاین</span>';
+      return "<tr><td><b>" + CC.esc(o.name) + "</b>" + (o.role === "admin" ? ' <span class="bdg2 violet">مدیر</span>' : "") + "</td>" +
+        "<td class='ltr'>" + CC.esc(o.username) + "</td><td class='num'>" + CC.faNum(o.sip_ext || "—") + "</td><td>" + st + "</td>" +
+        "<td>" + (o.in_queue ? '<span class="bdg2 ok">در صف</span>' : '<span class="bdg2 gray">خارج</span>') + "</td>" +
+        "<td class='num'>" + CC.faNum(pf.answered || 0) + " تماس • " + CC.faDur(pf.aht) + " • " + (pf.rating ? CC.faNum(pf.rating) + "⭐" : "—") + "</td>" +
+        '<td class="row" style="flex-wrap:nowrap">' +
+        '<button class="btn w sm" data-edit=\'' + CC.esc(JSON.stringify(o)) + "'>ویرایش</button> " +
+        '<button class="btn w sm" data-pause="' + CC.esc(o.sip_ext) + '" data-cur="' + (o.pause_reason ? 1 : 0) + '">' + (o.pause_reason ? "بازگشت" : "استراحت") + "</button> " +
+        '<button class="btn w sm" data-active="' + o.id + '" data-on="' + o.active + '">' + (o.active ? "غیرفعال" : "فعال") + "</button></td></tr>";
+    }).join("");
+    $("op_rows").querySelectorAll("[data-edit]").forEach(function (b) { b.addEventListener("click", function () { openOpEdit(JSON.parse(b.dataset.edit)); }); });
+    $("op_rows").querySelectorAll("[data-pause]").forEach(function (b) {
+      b.addEventListener("click", async function () {
+        var cur = b.dataset.cur === "1";
+        var reason = cur ? "" : prompt("دلیل استراحت:", "استراحت");
+        if (!cur && reason === null) return;
+        try {
+          await CC.api("/api/operators/" + b.dataset.pause + "/pause", { method: "POST", body: JSON.stringify({ paused: !cur, reason: reason }) });
+          CC.toast(cur ? "اپراتور به صف بازگشت" : "اپراتور استراحت رفت", "ok"); loadOps();
+        } catch (e) { CC.toast(e.message, "err"); }
+      });
+    });
+    $("op_rows").querySelectorAll("[data-active]").forEach(function (b) {
+      b.addEventListener("click", async function () {
+        try { await CC.api("/api/operators/" + b.dataset.active, { method: "POST", body: JSON.stringify({ active: b.dataset.on === "0" }) }); CC.toast("ثبت شد", "ok"); loadOps(); }
+        catch (e) { CC.toast(e.message, "err"); }
+      });
+    });
+  } catch (e) {}
 }
-async function toggleOp(id, active){ await api("/api/operators/"+id,{method:"POST",body:JSON.stringify({active:active})}); loadOps(); toast("ثبت شد"); }
-async function setPass(id){ var p=$("np"+id).value; if(!p)return; await api("/api/operators/"+id,{method:"POST",body:JSON.stringify({password:p})}); toast("رمز تغییر کرد"); }
-async function queueToggle(ext){ await api("/api/queue/member",{method:"POST",body:JSON.stringify({ext:ext,action:"toggle"})}); toast("وضعیت صف تغییر کرد"); loadStats(); }
-async function addOp(){
-  var r = await api("/api/operators",{method:"POST",body:JSON.stringify({username:$("ou").value.trim(),password:$("op").value,name:$("on").value.trim(),role:$("or").value,sip_ext:$("oe").value.trim()})});
-  if(r.ok){ toast("کاربر اضافه شد ✓"); $("ou").value=$("op").value=$("on").value=$("oe").value=""; loadOps(); }
-  else toast(r.error||"خطا");
+function renderOps() { loadOps(); }
+function openOpEdit(o) {
+  $("op_m_id").value = o ? o.id : ""; $("op_m_title").firstChild.textContent = o ? "ویرایش اپراتور " : "اپراتور جدید ";
+  $("op_m_name").value = o ? o.name : ""; $("op_m_user").value = o ? o.username : "";
+  $("op_m_pass").value = ""; $("op_m_ext").value = o ? (o.sip_ext || "") : "";
+  $("op_m_user").disabled = !!o; $("op_m_role").value = o ? o.role : "operator";
+  CC.modal("mOp", true);
+}
+
+/* ---------- queue ---------- */
+async function loadQueue() {
+  try {
+    var rows = await CC.api("/api/queue/members");
+    $("q_rows").innerHTML = rows.map(function (m) {
+      return "<tr><td><b>" + CC.esc(m.name) + "</b></td><td class='num'>" + CC.faNum(m.sip_ext || "—") + "</td>" +
+        "<td>" + (m.in_queue ? '<span class="bdg2 ok">عضو صف</span>' : '<span class="bdg2 gray">خارج از صف</span>') + "</td>" +
+        '<td><button class="btn w sm" data-q="' + CC.esc(m.sip_ext) + '" data-a="toggle">' + (m.in_queue ? "خروج از صف" : "افزودن به صف") + "</button></td></tr>";
+    }).join("");
+    $("q_rows").querySelectorAll("[data-q]").forEach(function (b) {
+      b.addEventListener("click", async function () {
+        try { await CC.api("/api/queue/member", { method: "POST", body: JSON.stringify({ ext: b.dataset.q, action: b.dataset.a }) }); CC.toast("اعمال شد", "ok"); loadQueue(); }
+        catch (e) { CC.toast(e.message, "err"); }
+      });
+    });
+  } catch (e) {}
+}
+
+/* ---------- CDR ---------- */
+function setCdDefaults() { if (!$("cd_from").value) $("cd_from").value = new Date().toISOString().slice(0, 10); }
+async function loadCdr() {
+  var p = new URLSearchParams();
+  if ($("cd_from").value) p.set("date", $("cd_from").value);
+  if ($("cd_to").value) p.set("date2", $("cd_to").value);
+  if ($("cd_status").value) p.set("status", $("cd_status").value);
+  if ($("cd_search").value) p.set("q", $("cd_search").value);
+  p.set("limit", 200);
+  $("cd_csv").href = "/api/export/cdr.csv?" + p.toString();
+  try {
+    var rows = await CC.api("/api/calls?" + p.toString());
+    $("cd_rows").innerHTML = rows.length ? rows.map(function (r) {
+      return "<tr><td>" + CC.faDate(r.started_at) + "</td><td><b>" + CC.esc(r.visitor_name || "—") + "</b><div class='mut ltr'>" + CC.esc(r.visitor_phone || "") + "</div></td>" +
+        '<td><span class="bdg2 ' + CC.statusBdg(r.status) + '">' + CC.faStatus(r.status) + "</span></td>" +
+        "<td>" + CC.faDisp(r.disposition) + "</td><td>" + (r.operator_ext ? "داخلی " + CC.faNum(r.operator_ext) : "—") + "</td>" +
+        "<td class='num'>" + CC.faDur(r.wait_sec) + "</td><td class='num'>" + CC.faDur(r.duration_sec) + "</td>" +
+        "<td>" + (r.survey_rating ? "⭐".repeat(r.survey_rating) : "—") + "</td>" +
+        '<td class="row" style="flex-wrap:nowrap">' +
+        '<button class="btn w sm" data-call="' + r.id + '">جزئیات</button>' +
+        '<button class="btn w sm" data-rec="' + CC.esc(r.unique_id) + '" ' + (r.recording_path ? "" : "disabled") + ">🎧</button></td></tr>";
+    }).join("") : '<tr><td colspan="9" class="empty">تماسی یافت نشد</td></tr>';
+    $("cd_rows").querySelectorAll("[data-rec]").forEach(function (b) { b.addEventListener("click", function () { playRec(b.dataset.rec); }); });
+    $("cd_rows").querySelectorAll("[data-call]").forEach(function (b) { b.addEventListener("click", function () { openCall(b.dataset.call); }); });
+  } catch (e) { CC.toast(e.message, "err"); }
+}
+function playRec(uid) {
+  $("recBody").innerHTML = '<audio class="audioplayer" controls src="/api/records/' + encodeURIComponent(uid) + '"></audio><p class="mut" style="margin-top:8px">شناسه: ' + CC.esc(uid) + "</p>";
+  CC.modal("mRec", true);
+}
+async function openCall(id) {
+  CC.modal("mCall", true);
+  $("callBody").innerHTML = '<div class="empty">…</div>';
+  try {
+    var c = await CC.api("/api/calls/" + id);
+    var html = '<div class="tl">';
+    html += '<div class="te">شروع: ' + CC.faDate(c.started_at) + ' <small>(' + CC.faStatus(c.status) + ")</small></div>";
+    if (c.answered_at) html += '<div class="te">پاسخ: ' + CC.faDate(c.answered_at) + " <small>پس از " + CC.faDur(c.wait_sec) + "</small></div>";
+    if (c.transferred_to) html += '<div class="te">انتقال به داخلی ' + CC.faNum(c.transferred_to) + "</div>";
+    if (c.ended_at) html += '<div class="te">پایان: ' + CC.faDate(c.ended_at) + " <small>مدت " + CC.faDur(c.duration_sec) + "</small></div>";
+    if (c.survey_rating) html += '<div class="te">امتیاز مشتری: ' + "⭐".repeat(c.survey_rating) + "</div>";
+    (c.events || []).forEach(function (e) { html += '<div class="te"><b>' + CC.esc(e.event) + "</b> " + CC.faDate(e.created_at) + "</div>"; });
+    html += "</div>";
+    html += '<label style="margin-top:10px">یادداشت</label><textarea id="call_note" rows="3">' + CC.esc(c.notes || "") + "</textarea>";
+    html += '<button class="btn p" id="call_savenote" style="margin-top:8px">ذخیره یادداشت</button>';
+    $("callBody").innerHTML = html;
+    $("call_savenote").addEventListener("click", async function () {
+      try { await CC.api("/api/calls/" + id + "/notes", { method: "POST", body: JSON.stringify({ notes: $("call_note").value }) }); CC.toast("ذخیره شد ✓", "ok"); }
+      catch (e) { CC.toast(e.message, "err"); }
+    });
+  } catch (e) { $("callBody").innerHTML = e.message; }
+}
+
+/* ---------- missed + callbacks ---------- */
+async function loadMissed() {
+  try {
+    var rows = await CC.api("/api/missed");
+    $("ms_rows").innerHTML = rows.length ? rows.slice(0, 50).map(function (r) {
+      return "<tr><td>" + CC.faDate(r.started_at) + "</td><td><b>" + CC.esc(r.visitor_name || "—") + "</b><div class='mut ltr'>" + CC.esc(r.visitor_phone || "") + "</div></td>" +
+        "<td class='num'>" + CC.faDur(r.wait_sec) + "</td>" +
+        "<td>" + (r.callback_status ? '<span class="bdg2 ' + ({ new: "warn", assigned: "info", done: "ok", failed: "bad" }[r.callback_status] || "gray") + '">' + ({ new: "تسک جدید", assigned: "واگذار شده", done: "انجام شد", failed: "ناموفق" }[r.callback_status]) + "</span>" : '<span class="bdg2 gray">بدون تسک</span>') + "</td>" +
+        '<td><button class="btn w sm" data-cb="' + r.id + '" data-ph="' + CC.esc(r.visitor_phone || "") + '" data-nm="' + CC.esc(r.visitor_name || "") + '">🔔 کال‌بک</button></td></tr>';
+    }).join("") : '<tr><td colspan="5" class="empty">🎉 تماس ازدست‌رفته‌ای وجود ندارد</td></tr>';
+    $("ms_rows").querySelectorAll("[data-cb]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        $("cb_phone").value = b.dataset.ph; $("cb_name").value = b.dataset.nm; $("cb_reason").value = "پیگیری تماس ازدست‌رفته"; $("cb_to").value = "";
+        CC.modal("mCb", true);
+      });
+    });
+    var cbs = await CC.api("/api/callbacks");
+    $("cb_rows").innerHTML = cbs.length ? cbs.slice(0, 50).map(function (c) {
+      var st = { new: ["تسک جدید", "warn"], assigned: ["واگذار به " + CC.faNum(c.assigned_to || "—"), "info"], done: ["انجام شد", "ok"], failed: ["ناموفق", "bad"] }[c.status] || ["?", "gray"];
+      return "<tr><td><b class='ltr'>" + CC.esc(c.phone) + "</b><div class='mut'>" + CC.esc(c.name || "") + "</div></td>" +
+        "<td>" + (c.assigned_to ? "داخلی " + CC.faNum(c.assigned_to) : "—") + "</td>" +
+        '<td><span class="bdg2 ' + st[1] + '">' + st[0] + "</span></td><td>" + CC.faDate(c.created_at) + "</td>" +
+        '<td class="row" style="flex-wrap:nowrap">' +
+        (c.status !== "done" ? '<button class="btn g sm" data-done="' + c.id + '">✓ انجام شد</button> <button class="btn w sm" data-assign="' + c.id + '">واگذار</button>' : "—") + "</td></tr>";
+    }).join("") : '<tr><td colspan="5" class="empty">تسکی وجود ندارد</td></tr>';
+    $("cb_rows").querySelectorAll("[data-done]").forEach(function (b) {
+      b.addEventListener("click", async function () {
+        try { await CC.api("/api/callbacks/" + b.dataset.done, { method: "POST", body: JSON.stringify({ status: "done" }) }); CC.toast("کال‌بک انجام شد ✓", "ok"); loadMissed(); }
+        catch (e) { CC.toast(e.message, "err"); }
+      });
+    });
+    $("cb_rows").querySelectorAll("[data-assign]").forEach(function (b) {
+      b.addEventListener("click", async function () {
+        var ext = prompt("داخلی مسئول:", ME.ext); if (!ext) return;
+        try { await CC.api("/api/callbacks/" + b.dataset.assign, { method: "POST", body: JSON.stringify({ assigned_to: ext, status: "assigned" }) }); loadMissed(); }
+        catch (e) { CC.toast(e.message, "err"); }
+      });
+    });
+  } catch (e) {}
+}
+
+/* ---------- quality ---------- */
+async function loadQuality() {
+  try {
+    var d = await CC.api("/api/quality/summary");
+    var bad = d.perExt.filter(function (p) { return p.mos > 0 && p.mos < 3.1; });
+    $("qy_kpi").innerHTML =
+      '<div class="kpi ok"><div class="v">' + CC.faNum(d.perExt.filter((p) => p.mos >= 4).length) + '</div><div class="l">داخلی‌های عالی</div></div>' +
+      '<div class="kpi warn"><div class="v">' + CC.faNum(d.perExt.filter((p) => p.mos >= 3.1 && p.mos < 4).length) + '</div><div class="l">قابل‌قبول</div></div>' +
+      '<div class="kpi bad"><div class="v">' + CC.faNum(bad.length) + '</div><div class="l">شبکه ضعیف</div></div>' +
+      '<div class="kpi"><div class="v">' + CC.faNum(d.alerts.length) + '</div><div class="l">هشدار ۲۴ ساعت</div></div>';
+    $("qy_rows").innerHTML = d.perExt.length ? d.perExt.map(function (p) {
+      var cls = p.mos >= 4 ? "ok" : p.mos >= 3.1 ? "warn" : "bad";
+      return "<tr><td><b>" + CC.esc(p.ext) + "</b></td><td class='num'>" + CC.faNum(p.mos) + "</td>" +
+        '<td><span class="pill ' + cls + '">' + (p.mos >= 4 ? "عالی" : p.mos >= 3.1 ? "قابل‌قبول" : "ضعیف!") + "</span></td>" +
+        "<td class='num'>" + CC.faNum(p.rtt) + "ms</td><td class='num'>" + CC.faNum(p.jitter) + "ms</td><td class='num'>" + CC.faNum(p.loss) + "٪</td>" +
+        "<td class='num'>" + CC.faNum(p.n) + "</td></tr>";
+    }).join("") : '<tr><td colspan="7" class="empty">داده کیفیت هنوز ثبت نشده — پس از اولین تماس نمایش داده می‌شود</td></tr>';
+    lineChart($("qy_chart"), d.trend.map(function (t) { return { label: t.h, v: t.mos }; }), "#0ea5e9", 4.5);
+    $("qy_alerts").innerHTML = d.alerts.length ? d.alerts.map(function (a) {
+      return "<tr><td>" + CC.faDate(a.created_at) + "</td><td>" + CC.esc(a.ext) + "</td><td class='num'>" + CC.faNum(a.mos) + "</td><td class='num'>" + CC.faNum(a.loss_pct) + "٪</td><td class='num'>" + CC.faNum(a.rtt_ms) + "ms</td><td class='num'>" + CC.faNum(a.jitter_ms) + "ms</td></tr>";
+    }).join("") : '<tr><td colspan="6" class="empty">هشداری ثبت نشده ✓</td></tr>';
+  } catch (e) {}
+}
+function lineChart(svg, data, color, maxV) {
+  var W = 600, H = 190, pad = 26;
+  var max = maxV || Math.max(1, ...data.map((d) => d.v));
+  var pts = data.map(function (d, i) {
+    var x = pad + (W - pad * 2) * (data.length === 1 ? 0.5 : i / (data.length - 1));
+    var y = H - pad - (H - pad * 2) * (d.v / max);
+    return { x: x, y: y, d: d };
+  });
+  var out = '<line class="axis" x1="' + pad + '" y1="' + (H - pad) + '" x2="' + (W - pad) + '" y2="' + (H - pad) + '"/>';
+  pts.forEach(function (p, i) {
+    if (i) { var pr = pts[i - 1]; out += '<line x1="' + pr.x + '" y1="' + pr.y + '" x2="' + p.x + '" y2="' + p.y + '" stroke="' + color + '" stroke-width="2.5"/>'; }
+    out += '<circle cx="' + p.x + '" cy="' + p.y + '" r="3.5" fill="' + color + '"/>';
+    if (i % Math.ceil(pts.length / 12 || 1) === 0) out += '<text class="lbl" x="' + (p.x - 10) + '" y="' + (H - 8) + '">' + CC.esc(p.d.label) + "</text>";
+  });
+  svg.innerHTML = out;
+}
+
+/* ---------- customers (same as operator) ---------- */
+async function loadCustomers() {
+  try {
+    var rows = await CC.api("/api/customers?s=" + encodeURIComponent($("c_search").value || ""));
+    $("c_rows").innerHTML = rows.length ? rows.map(function (r) {
+      return "<tr><td><b>" + CC.esc(r.name || "—") + "</b></td><td class='ltr'>" + CC.esc(r.phone || "—") + "</td><td class='ltr'>" + CC.esc(r.email || "—") + "</td>" +
+        "<td class='num'>" + CC.faNum(r.call_count) + "</td><td>" + CC.faDate(r.last_call || r.last_seen) + "</td>" +
+        '<td><button class="btn w sm" data-open=\'' + CC.esc(JSON.stringify({ visitor_id: r.visitor_id, name: r.name, phone: r.phone, email: r.email })) + "'>پرونده</button></td></tr>";
+    }).join("") : '<tr><td colspan="6" class="empty">مشتری یافت نشد</td></tr>';
+    $("c_rows").querySelectorAll("[data-open]").forEach(function (b) { b.addEventListener("click", function () { openCustomer(JSON.parse(b.dataset.open)); }); });
+  } catch (e) {}
+}
+async function openCustomer(c) {
+  CC.modal("mCust", true);
+  $("custBody").innerHTML = '<div class="empty">…</div>';
+  var html = '<div class="row"><div class="avatar" style="background:linear-gradient(135deg,#0369a1,#0ea5e9)">' + CC.esc((c.name || "؟").charAt(0)) + "</div>" +
+    '<div><b style="font-size:16px">' + CC.esc(c.name || "بدون نام") + '</b><div class="ltr mut">' + CC.esc(c.phone || "") + " " + CC.esc(c.email || "") + "</div></div></div>";
+  var crm = {};
+  try { crm = await CC.api("/api/crm/lookup?phone=" + encodeURIComponent(c.phone || "") + "&email=" + encodeURIComponent(c.email || "")); } catch (e) {}
+  var orders = crm.bookings || crm.orders || [];
+  if (orders.length) {
+    html += '<h3 style="margin:14px 0 8px">🎫 سفارش‌ها</h3>' + orders.slice(0, 10).map(function (b) {
+      var d = (typeof b.details === "string" ? safeParse(b.details) : b.details) || {};
+      return '<div class="row" style="background:var(--soft);border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:12.5px">' +
+        '<span class="bdg2 info">' + CC.faType(b.type) + "</span><b>" + CC.esc(d.route || d.title || d.hotel || d.origin || "") + "</b>" +
+        '<span class="bdg2 ' + (String(b.status).includes("confirm") ? "ok" : "warn") + '">' + CC.esc(String(b.status || "")) + "</span>" +
+        '<b style="margin-inline-start:auto">' + CC.faNum(b.totalAmount || 0) + "</b></div>";
+    }).join("");
+  } else html += '<p class="mut" style="margin-top:10px">سفارشی یافت نشد</p>';
+  html += '<button class="btn p" id="cust_cb" style="margin-top:14px">🔔 ثبت کال‌بک</button>';
+  $("custBody").innerHTML = html;
+  $("cust_cb").addEventListener("click", function () { $("cb_phone").value = c.phone || ""; $("cb_name").value = c.name || ""; $("cb_reason").value = ""; $("cb_to").value = ""; CC.modal("mCust", false); CC.modal("mCb", true); });
+}
+function safeParse(s) { try { return JSON.parse(s); } catch (e) { return {}; } }
+
+/* ---------- survey ---------- */
+async function loadSurvey() {
+  try {
+    var d = await CC.api("/api/survey/stats");
+    var dist = [1, 2, 3, 4, 5].map(function (r) { var x = d.dist.find(function (z) { return z.rating === r; }); return { label: "⭐".repeat(r), a: x ? x.c : 0, b: 0, c: 0 }; });
+    barChart($("sv_chart"), dist, ["#ef4444", "#f59e0b", "#facc15", "#84cc16", "#10b981"]);
+    var total = d.dist.reduce(function (a, b) { return a + b.c; }, 0);
+    var wsum = d.dist.reduce(function (a, b) { return a + b.rating * b.c; }, 0);
+    $("sv_avg").textContent = total ? ("میانگین کل: " + CC.faNum((wsum / total).toFixed(2)) + " از ۵") : "هنوز نظری ثبت نشده";
+    $("sv_ops").innerHTML = d.perOp.length ? d.perOp.map(function (p) {
+      return "<tr><td>داخلی " + CC.faNum(p.ext) + "</td><td>" + CC.faNum(p.rating) + " ⭐</td><td class='num'>" + CC.faNum(p.n) + "</td></tr>";
+    }).join("") : '<tr><td colspan="3" class="empty">—</td></tr>';
+    $("sv_rows").innerHTML = d.recent.length ? d.recent.map(function (r) {
+      return "<tr><td>" + CC.faDate(r.created_at) + "</td><td>" + CC.esc(r.visitor_name || r.visitor_phone || "—") + "</td><td>" + (r.operator_ext ? CC.faNum(r.operator_ext) : "—") + "</td><td>" + "⭐".repeat(r.rating) + "</td><td>" + (r.source === "ivr" ? "تلفنی" : "ویجت") + "</td></tr>";
+    }).join("") : '<tr><td colspan="5" class="empty">—</td></tr>';
+  } catch (e) {}
+}
+
+/* ---------- health ---------- */
+async function loadHealth() {
+  try {
+    var h = await CC.api("/api/health/full");
+    $("hl_kpi").innerHTML =
+      '<div class="kpi ' + (h.ami.connected ? "ok" : "bad") + '"><div class="v">' + (h.ami.connected ? "✓" : "✗") + '</div><div class="l">AMI سانترال</div></div>' +
+      '<div class="kpi ' + (h.ami.ping ? "ok" : "warn") + '"><div class="v">' + (h.ami.ping ? "✓" : "—") + '</div><div class="l">پاسخ PBX</div></div>' +
+      '<div class="kpi ' + (h.db && h.db.ok ? "ok" : "bad") + '"><div class="v">' + (h.db && h.db.ok ? "✓" : "✗") + '</div><div class="l">پایگاه‌داده</div></div>' +
+      '<div class="kpi info"><div class="v">' + CC.faNum(h.today ? h.today.calls : 0) + '</div><div class="l">تماس امروز</div></div>';
+    $("hl_body").innerHTML = [
+      row("نسخه سرویس", "v" + h.version),
+      row("مدت فعالیت", CC.faDur(h.uptime) + " دقیقه"),
+      row("AMI", h.ami.host + (h.ami.connected ? " — متصل" : " — قطع!")),
+      row("پایگاه‌داده", h.db && h.db.ok ? "MariaDB " + h.db.version : "خطا: " + (h.db && h.db.error)),
+      row("WSS", h.wss.url),
+      row("TURN", h.turn.host + ":3478"),
+      row("ضبط‌های موجود", CC.faNum(h.recordings || 0) + " فایل"),
+    ].join("");
+    function row(k, v) { return '<div class="row" style="padding:8px 0;border-bottom:1px solid rgba(148,163,184,.12)"><b style="min-width:130px">' + k + '</b><span class="mut">' + CC.esc(v) + "</span></div>"; }
+  } catch (e) {}
 }
 
 /* ---------- settings ---------- */
-async function loadRdb(){ var s = await api("/api/settings"); $("rdbc").value = s.remote_db||""; }
-async function saveRdb(){
-  var r = await api("/api/settings/remote_db",{method:"POST",headers:{"Content-Type":"text/plain"},body:$("rdbc").value});
-  if(r.ok) toast("تنظیمات ذخیره شد ✓"); else toast(r.error||"خطا");
-}
-async function testRdb(){
-  var phone = $("testPhone").value;
-  var res = await api("/api/crm/lookup?phone="+encodeURIComponent(phone||""));
-  $("rdbRes").style.display="block"; $("rdbRes").textContent = JSON.stringify(res,null,2);
+async function loadSettings() {
+  try {
+    var s = await CC.api("/api/settings");
+    var rd = safeParse(s.remote_db || "{}");
+    $("rd_host").value = rd.host || ""; $("rd_port").value = rd.port || 3306; $("rd_db").value = rd.database || "";
+    $("rd_user").value = rd.user || ""; $("rd_pass").value = "";
+  } catch (e) {}
 }
 
-/* ---------- auto start ---------- */
-(function(){
-  if(!T) return;
-  fetch("/api/auth/me",{headers:{"Authorization":"Bearer "+T}})
-    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
-    .then(function(u){ if(u&&u.id) boot(); else { localStorage.removeItem("cc_token"); } })
-    .catch(function(){ localStorage.removeItem("cc_token"); });
-})();
+/* ---------- bind all buttons ---------- */
+function bindUI() {
+  $("logout").addEventListener("click", function () { localStorage.removeItem("cc_token"); try { ua && ua.stop(); } catch (e) {} location.reload(); });
+  $("live_ref").addEventListener("click", loadLive);
+  $("hl_ref").addEventListener("click", loadHealth);
+  $("q_ref").addEventListener("click", loadQueue);
+  $("op_add").addEventListener("click", function () { openOpEdit(null); });
+  $("op_m_save").addEventListener("click", async function () {
+    var id = $("op_m_id").value;
+    try {
+      if (id) {
+        var body = { name: $("op_m_name").value, sip_ext: $("op_m_ext").value };
+        if ($("op_m_pass").value) body.password = $("op_m_pass").value;
+        await CC.api("/api/operators/" + id, { method: "POST", body: JSON.stringify(body) });
+      } else {
+        await CC.api("/api/operators", { method: "POST", body: JSON.stringify({ username: $("op_m_user").value.trim(), password: $("op_m_pass").value, name: $("op_m_name").value, role: $("op_m_role").value, sip_ext: $("op_m_ext").value }) });
+      }
+      CC.toast("ذخیره شد ✓", "ok"); CC.modal("mOp", false); loadOps();
+    } catch (e) { CC.toast(e.message, "err"); }
+  });
+  $("cd_go").addEventListener("click", loadCdr);
+  $("cd_search").addEventListener("keydown", function (e) { if (e.key === "Enter") loadCdr(); });
+  $("cb_new").addEventListener("click", function () { $("cb_phone").value = ""; $("cb_name").value = ""; $("cb_reason").value = ""; $("cb_to").value = ""; CC.modal("mCb", true); });
+  $("cb_ref").addEventListener("click", loadMissed);
+  $("cb_save").addEventListener("click", async function () {
+    try {
+      await CC.api("/api/callbacks", { method: "POST", body: JSON.stringify({ phone: $("cb_phone").value.trim(), name: $("cb_name").value.trim(), reason: $("cb_reason").value.trim(), assigned_to: $("cb_to").value.trim() }) });
+      CC.toast("تسک کال‌بک ثبت شد ✓", "ok"); CC.modal("mCb", false); loadMissed();
+    } catch (e) { CC.toast(e.message, "err"); }
+  });
+  $("c_go").addEventListener("click", loadCustomers);
+  $("c_search").addEventListener("keydown", function (e) { if (e.key === "Enter") loadCustomers(); });
+  $("p_btn").addEventListener("click", async function () {
+    try { await CC.api("/api/auth/pass", { method: "POST", body: JSON.stringify({ oldpass: $("p_old").value, newpass: $("p_new").value }) }); CC.toast("رمز تغییر کرد ✓", "ok"); $("p_old").value = $("p_new").value = ""; }
+    catch (e) { CC.toast(e.message, "err"); }
+  });
+  $("rd_save").addEventListener("click", async function () {
+    $("rd_res").textContent = "در حال تست…";
+    try {
+      await CC.api("/api/settings/remote_db", { method: "POST", body: JSON.stringify({ host: $("rd_host").value.trim(), port: +$("rd_port").value || 3306, database: $("rd_db").value.trim(), user: $("rd_user").value.trim(), password: $("rd_pass").value }) });
+      var t = await CC.api("/api/crm/lookup?phone=");
+      $("rd_res").textContent = "✓ اتصال ذخیره شد" + (t && t.error ? " — هشدار: " + t.error : " و سالم است");
+    } catch (e) { $("rd_res").textContent = "✗ " + e.message; }
+  });
+  $("sysbanner").addEventListener("click", function () { this.classList.add("hidden"); });
+}
+
+/* ---------- admin SIP mini-phone (for monitor calls) ---------- */
+var ua = null, reg = null, regBusy = false;
+function loadSip() {
+  var s = document.createElement("script"); s.src = "/sip.js";
+  s.onload = async function () {
+    var cred = await CC.api("/api/auth/sipcred").catch(function () { return null; });
+    if (!cred) return;
+    ua = new SIP.UserAgent({
+      uri: SIP.UserAgent.makeURI("sip:" + ME.ext + "@" + location.host),
+      transportOptions: { server: "wss://" + location.host + "/ws" },
+      authorizationUsername: String(ME.ext), authorizationPassword: cred.password,
+      sessionDescriptionHandlerFactoryOptions: { peerConnectionConfiguration: { iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "turn:46.100.58.20:3478?transport=tcp", username: "callcenter", credential: "FzTurn2026!x" },
+        { urls: "turn:46.100.58.20:3478?transport=udp", username: "callcenter", credential: "FzTurn2026!x" },
+        { urls: "turn:192.168.100.65:3478?transport=udp", username: "callcenter", credential: "FzTurn2026!x" },
+      ] } },
+      delegate: { onInvite: onMonIncoming },
+    });
+    reg = new SIP.Registerer(ua);
+    ua.start().catch(function () {});
+    ua.transport.stateChange.addListener(function (st) {
+      if (st === SIP.TransportState.Connected && !regBusy) { regBusy = true; reg.register().catch(function () {}).finally(function () { regBusy = false; }); }
+      if (st === SIP.TransportState.Disconnected) setTimeout(function () { try { ua.transport.connect(); } catch (e) {} }, 4000);
+    });
+  };
+  document.head.appendChild(s);
+}
+function onMonIncoming(inv) {
+  var isMonitor = /^Monitor/i.test((inv.remoteIdentity && inv.remoteIdentity.displayName) || "");
+  if (!isMonitor) { try { inv.reject(); } catch (e) {} return; }
+  CC.ring();
+  var doAns = function () {
+    CC.stopRing();
+    inv.accept({ sessionDescriptionHandlerOptions: { constraints: { audio: true, video: false } } }).catch(function () {});
+    inv.stateChange.addListener(function (st) {
+      if (st === SIP.SessionState.Established) {
+        try {
+          var a = new Audio(); a.autoplay = true;
+          var pc = inv.sessionDescriptionHandler.peerConnection;
+          var stream = new MediaStream();
+          pc.getReceivers().forEach(function (r) { if (r.track) stream.addTrack(r.track); });
+          a.srcObject = stream; a.play().catch(function () {});
+          pc.ontrack = function (ev) { if (ev.streams && ev.streams[0]) { a.srcObject = ev.streams[0]; a.play().catch(function () {}); } };
+          window._monAudio = a;
+        } catch (e) {}
+      }
+      if (st === SIP.SessionState.Terminated) CC.stopRing();
+    });
+  };
+  if ($("autoans") && $("autoans").checked) setTimeout(doAns, 800);
+  else CC.toast("🎧 درخواست شنود — برای شنود پاسخ دهید (تلفن مدیر)");
+}
 </script>
 </body>
 </html>

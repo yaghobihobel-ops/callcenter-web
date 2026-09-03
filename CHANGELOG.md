@@ -3,6 +3,33 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.0.0] - 2026-09-03
+
+### Added — Dashboard v3 (owner-grade redesign)
+- **Admin console, 11 sections**: dash (KPI + today trend + alerts), live wallboard
+  (active calls with listen/whisper/barge), quality (MOS/loss/jitter reports),
+  ops (team management + pause reasons), queue (members + live status), CDR deep
+  search, missed-call workbench, CRM customers, survey results, system health,
+  settings (remote DB connector).
+- **Operator console, 6 sections**: softphone (SIP.js over WSS, mute/hold/DTMF/
+  blind + attended transfer), CRM 360 pop on incoming, my history, team chat,
+  team presence board, settings.
+- **Realtime**: Socket.IO presence + wallboard + chat; AMI event pipeline in
+  `runtime.js` (Newchannel/Bridge/Hangup → call state machine).
+- **Transfers**: blind (AMI Redirect → cc-transfer context) and attended
+  (consult + AMI Bridge completion), admin monitor (ChanSpy listen/whisper/barge).
+- **Callback queue**: missed calls become callbacks with SLA tracking and
+  claim/done lifecycle.
+- **Quality reporting**: per-call MOS/loss/jitter from both agent and visitor,
+  aggregated summary for admin.
+- MySQL/MariaDB storage (schema v3) with user-space MySQL test harness.
+
+### Fixed
+- `lib/pbx.js`: restored corrupted monitor/ChanSpy option parsing and added
+  `listChannels()` (CoreShowChannels) export.
+- Node 24 compatibility: `better-sqlite3` replaced by MariaDB-only storage
+  (mysql2); version alignment across VERSION/package/CFG.
+
 ## [2.0.3] - 2026-09-02
 
 ### Added

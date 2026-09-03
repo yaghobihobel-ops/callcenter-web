@@ -40,5 +40,20 @@ exten => *99,1,UserEvent(OpQueueToggle,Ext:${CALLERID(num)})
  same => n,Playback(beep)
  same => n,Hangup()
 
+; Blind-transfer landing: AMI Redirect drops the visitor channel here.
+; Recording continues (MixMonitor lives on the channel), survey is skipped.
+[cc-transfer]
+exten => _1XXX,1,NoOp(Transferred call -> PJSIP/${EXTEN} (from ${CALLERID(num)}))
+ same => n,Dial(PJSIP/${EXTEN},40)
+ same => n,Hangup()
+exten => _X.,1,Hangup()
+
+; Admin monitor: AMI Originate PJSIP/<adminExt> -> here with
+; SPY_TARGET=<PJSIP channel> and SPY_MODE=q|qw|qB (listen/whisper/barge)
+[cc-monitor]
+exten => spy,1,NoOp(Monitor ${SPY_TARGET} mode=${SPY_MODE} by ${CALLERID(num)})
+ same => n,ChanSpy(${SPY_TARGET},${SPY_MODE})
+ same => n,Hangup()
+
 [default]
 exten => _X.,1,Hangup()

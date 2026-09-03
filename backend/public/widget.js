@@ -539,6 +539,7 @@
     st = "active";
     playRing(false);
     attachRemote(inv);
+    startQuality(inv);
     showStage("active");
     setMuteUI(false);
     var t = 0;
@@ -553,9 +554,49 @@
     if (inviter) clearTimeout(inviter._wd);
     playRing(false);
     clearInterval(tmrI);
+    reportQuality();
     remoteAudio.srcObject = null;
     if (st === "active" || st === "calling") showEnded();
     inviter = null;
+  }
+
+  /* ---- visitor-side network quality (weak-network visibility for admins) ---- */
+  var qStats = { rtt: 0, jitter: 0, loss: 0, mos: 0 };
+  var qTimer = null;
+  function mosFrom(rtt, jitter, loss) {
+    var eff = (rtt || 0) + 2 * (jitter || 0) + 10;
+    var R = 93.2 - Math.max(0, (eff - 160) / 40) - (loss || 0) * 2.5;
+    R = Math.max(0, Math.min(100, R));
+    var m = R >= 100 ? 4.5 : 1 + 0.035 * R + 7e-6 * R * (R - 60) * (100 - R);
+    return Math.max(1, Math.min(4.5, +m.toFixed(2)));
+  }
+  function startQuality(inv) {
+    stopQuality();
+    try {
+      var pc = inv.sessionDescriptionHandler.peerConnection;
+      qTimer = setInterval(function () {
+        pc.getStats().then(function (stats) {
+          var rtt = 0, jit = 0, lost = 0, recv = 0;
+          stats.forEach(function (r) {
+            if (r.type === "candidate-pair" && r.state === "succeeded" && r.currentRoundTripTime != null) rtt = Math.round(r.currentRoundTripTime * 1000);
+            if (r.type === "inbound-rtp" && r.kind === "audio") { jit = Math.round((r.jitter || 0) * 1000); lost = r.packetsLost || 0; recv = r.packetsReceived || 0; }
+          });
+          var loss = (lost + recv) > 0 ? +(100 * lost / (lost + recv)).toFixed(1) : 0;
+          qStats = { rtt: rtt, jitter: jit, loss: loss, mos: mosFrom(rtt, jit, loss) };
+        }).catch(function () {});
+      }, 10000);
+    } catch (e) {}
+  }
+  function stopQuality() { if (qTimer) { clearInterval(qTimer); qTimer = null; } }
+  function reportQuality() {
+    stopQuality();
+    if (!qStats.rtt && !qStats.loss) return;
+    try {
+      fetch(API + "/api/quality/visitor", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rtt_ms: qStats.rtt, jitter_ms: qStats.jitter, loss_pct: qStats.loss, mos: qStats.mos, unique_id: vid || "", detail: "widget" })
+      }).catch(function () {});
+    } catch (e) {}
+    qStats = { rtt: 0, jitter: 0, loss: 0, mos: 0 };
   }
 
   function showEnded() {
@@ -667,7 +708,7 @@
     open: open,
     close: close,
     startCall: function () { open(); setTimeout(function () { startCall(); }, 350); },
-    version: "2.0.0"
+    version: "2.1.0"
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { mount(); bind(); });

@@ -1,10 +1,12 @@
-/* runtime.js — AMI wiring, socket.io, recordings pull, server listen */
+/* runtime.js v3 — AMI wiring, live monitor, socket hub, chat presence,
+ * missed-call automation, recordings pull, server listen */
 const fs = require("fs");
 const { Client } = require("ssh2");
-const { app, server, io, CFG, ami } = require("./server");
+const { app, server, io, CFG, ami, live, postChatSystem, socketsByExt } = require("./server");
 const remote = require("./lib/remote");
 const { q } = require("./lib/db");
 const state = require("./lib/state");
+const jwt = require("jsonwebtoken");
 
 /* ---------- AMI (instance created in server.js, shared singleton) ---------- */
 let queueMembers = [];
@@ -44,6 +46,21 @@ async function findCallByUniqueId(uid) {
   return rows[0] || null;
 }
 
+/* ---------- missed-call automation: callback task + team chat ---------- */
+async function onMissedCall(call) {
+  try {
+    if (!call.visitor_phone) return;
+    const dup = await q("SELECT id FROM callbacks WHERE call_id=? LIMIT 1", [call.id]);
+    if (dup.length) return;
+    await q(`INSERT INTO callbacks (call_id,phone,name,reason,status,created_at)
+             VALUES (?,?,?,?, 'new', NOW())`,
+      [call.id, call.visitor_phone, call.visitor_name || "", "تماس ازدست‌رفته — نیازمند تماس مجدد"]);
+    io.emit("callback:new", { id: 0, phone: call.visitor_phone, missed: true });
+    postChatSystem(`🔔 تماس ازدست‌رفته از ${call.visitor_name || ""} ${call.visitor_phone} — تسک کال‌بک ثبت شد`);
+    io.to("admin").emit("missed:new", { unique_id: call.unique_id, phone: call.visitor_phone });
+  } catch (e) { console.error("[missed]", e.message); }
+}
+
 ami.on("connected", () => {
   console.log("[ami] connected to", CFG.ami.host);
   state.amiLogged = true;
@@ -55,8 +72,12 @@ ami.on("disconnected", (r) => {
   state.amiLogged = false;
   state.queueMemberSet.clear();
   io.to("admin").emit("ami:status", { connected: false });
+  live.alert("اتصال به سانترال (AMI) قطع شد", "bad");
 });
 ami.on("auth-failed", () => console.error("[ami] AUTH FAILED"));
+
+/* ---------- live monitor attached ---------- */
+live.attach(io, ami);
 
 ami.on("event", async (ev) => {
   try {
@@ -78,6 +99,7 @@ ami.on("event", async (ev) => {
         await q("UPDATE calls SET status='missed', ended_at=NOW(), wait_sec=TIMESTAMPDIFF(SECOND,started_at,NOW()) WHERE id=?", [c.id]);
         await addEvent(c.id, "abandon", { position: ev.Position });
         io.to("admin").emit("call:update", { unique_id: ev.Uniqueid, status: "missed" });
+        onMissedCall(c);
       }
     }
     if (E === "AgentConnect") {
@@ -91,6 +113,19 @@ ami.on("event", async (ev) => {
         io.to("op:" + ext).emit("call:incoming", { call: c });
         enrichAndPush(c, ext);
       }
+    }
+    /* transferred / direct calls bridge → push CRM pop to the receiving agent */
+    if (E === "BridgeEnter" && (ev.Channel || "").startsWith("PJSIP/1")) {
+      const ext = (String(ev.Channel).match(/^PJSIP\/(1\d{3})/) || [])[1];
+      /* find the other leg in the same bridge that is a visitor */
+      setTimeout(async () => {
+        try {
+          const act = live.getLive().find((x) => x.visitor && x.agent && String(x.agent.ext) === String(ext) && x.bridge === ev.BridgeUniqueid);
+          if (!act) return;
+          const c = await findCallByUniqueId(act.visitor.uid);
+          if (c) enrichAndPush(c, ext);
+        } catch {}
+      }, 700);
     }
     if (E === "AgentComplete") {
       const c = await findCallByUniqueId(ev.Uniqueid);
@@ -110,6 +145,7 @@ ami.on("event", async (ev) => {
         io.to("admin").emit("call:update", { unique_id: ev.Uniqueid, status: answered ? "completed" : "missed" });
         const opExt = c.operator_ext;
         if (opExt) io.to("op:" + opExt).emit("call:ended", { unique_id: ev.Uniqueid });
+        if (!answered) onMissedCall(c);
         setTimeout(() => pullRecording(ev.Uniqueid).catch(() => {}), 6000);
       }
     }
@@ -152,7 +188,7 @@ async function refreshQueueMembers() {
 
 async function pushMembers() {
   try {
-    const rows = await q("SELECT username,name,sip_ext,role,active FROM users WHERE role IN ('admin','operator') AND active=1");
+    const rows = await q("SELECT username,name,sip_ext,role,active,pause_reason FROM users WHERE role IN ('admin','operator') AND active=1");
     io.to("admin").to("operators").emit("queue:members", {
       members: rows.map(u => ({ ...u, in_queue: state.queueMemberSet.has(String(u.sip_ext)) })),
       waiting: null,
@@ -209,23 +245,64 @@ async function pullRecording(uniqueId) {
   });
 }
 
-/* ---------- socket.io ---------- */
+/* ---------- socket.io hub ---------- */
 io.use((socket, next) => {
   try {
-    const p = require("jsonwebtoken").verify((socket.handshake.auth || {}).token || "", CFG.jwt);
+    const p = jwt.verify((socket.handshake.auth || {}).token || "", CFG.jwt);
     socket.user = p; next();
   } catch { next(new Error("unauthorized")); }
 });
 io.on("connection", (socket) => {
-  if (socket.user.role === "admin") socket.join("admin");
-  if (socket.user.ext) socket.join("op:" + socket.user.ext);
+  const u = socket.user;
+  if (u.role === "admin") socket.join("admin");
+  if (u.ext) socket.join("op:" + u.ext);
   socket.join("operators");
-  socket.emit("hello", { user: socket.user });
+  socket.emit("hello", { user: u });
+
+  /* presence */
+  if (u.ext) {
+    if (!socketsByExt.has(String(u.ext))) socketsByExt.set(String(u.ext), new Set());
+    socketsByExt.get(String(u.ext)).add(socket.id);
+    broadcastPresence();
+  }
+
+  /* chat rooms */
+  socket.on("chat:join", (chan) => {
+    const c = String(chan || "").slice(0, 58);
+    if (c.startsWith("dm:")) {
+      const parts = c.split(":")[1].split("-").filter(Boolean);
+      if (!parts.includes(String(u.ext || ""))) return;
+    }
+    socket.join(c);
+  });
+  socket.on("chat:typing", (d) => {
+    const c = String((d && d.channel) || "team").slice(0, 58);
+    socket.to(c).emit("chat:typing", { channel: c, from: u.name, ext: u.ext });
+  });
+  socket.on("presence:ping", () => broadcastPresence());
+
+  socket.on("disconnect", () => {
+    if (u.ext && socketsByExt.has(String(u.ext))) {
+      const set = socketsByExt.get(String(u.ext));
+      set.delete(socket.id);
+      if (!set.size) socketsByExt.delete(String(u.ext));
+    }
+    broadcastPresence();
+  });
 });
+
+function broadcastPresence() {
+  try {
+    io.to("operators").to("admin").emit("presence", {
+      online: [...socketsByExt.keys()],
+      live: live.summary(),
+    });
+  } catch {}
+}
 
 /* ---------- listen ---------- */
 ami.connect();
-server.listen(CFG.port, "127.0.0.1", () => console.log(`[callcenter] listening on 127.0.0.1:${CFG.port}`));
+server.listen(CFG.port, "127.0.0.1", () => console.log(`[callcenter] v${CFG.version} listening on 127.0.0.1:${CFG.port}`));
 
 process.on("uncaughtException", (e) => console.error("[uncaught]", e.message));
 process.on("unhandledRejection", (e) => console.error("[unhandled]", (e && e.message) || e));
