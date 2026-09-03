@@ -20,3 +20,5 @@ recordings/
 # OS / editor
 .DS_Store
 Thumbs.db
+dist/
+dist/callcenter-web-*.tar.gz
