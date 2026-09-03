@@ -231,7 +231,7 @@ if [ "$APPLY_OK" = 1 ]; then
   if [ "$TEST_MODE" != 1 ]; then
     VERIFY_OK=0
     sleep 3
-    APP_PORT_GREP="$(grep -E '^CC_PORT=' "$APP_DIR/.env" | cut -d= -f2 || echo 3006)"
+    APP_PORT_GREP="$(envget CC_PORT)"   # envget strips quotes (set -u / curl safe)
     for _try in 1 2 3 4 5; do
       if curl -fsS "http://127.0.0.1:${APP_PORT_GREP:-3006}/health" >/dev/null 2>&1; then VERIFY_OK=1; break; fi
       sleep 2
