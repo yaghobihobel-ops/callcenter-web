@@ -3,6 +3,20 @@
 All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.0.1] - 2026-09-03
+
+### Fixed
+- **better-sqlite3 pinned to 8.5.2** (exact) — v11 needs `-std=c++20` which
+  AlmaLinux 8 / CentOS 8 gcc 8.5 cannot build; this broke `npm install` during
+  the first production update (auto-rollback caught it).
+- `update.sh` now parses `.env` **without `eval`** (safe under `set -u` for
+  passwords containing `$ ! # { }`); installer quotes secret values in the
+  `.env` template for the same reason.
+- `update.sh --only <role>` passthrough added (e.g. `--only app` keeps the live
+  nginx vhost and pbx untouched during app-only updates).
+- installer logs npm output to `$INSTALL_DIR/npm-install.log` instead of
+  discarding it, so native-build failures are diagnosable.
+
 ## [3.0.0] - 2026-09-03
 
 ### Added — Dashboard v3 (owner-grade redesign)

@@ -1,6 +1,6 @@
 {
   "name": "firuzo-callcenter",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "private": true,
   "description": "Call Center backend + panel for firuzo.online (Asterisk AMI + CRM remote connector)",
   "main": "server.js",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^11.10.0",
+    "better-sqlite3": "8.5.2",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.0",

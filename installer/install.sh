@@ -419,8 +419,8 @@ EOF
   sha256sum "$INSTALL_DIR/app/package.json" | cut -d' ' -f1 > "$INSTALL_DIR/app/.package.sha256"
   if [ "$need_npm" = 1 ]; then
     info "[app] npm install (deps changed or first run)"
-    (cd "$INSTALL_DIR/app" && npm install --omit=dev --no-audit --no-fund >/dev/null 2>&1) \
-      || die "npm install failed (check node version >= 18)"
+    (cd "$INSTALL_DIR/app" && npm install --omit=dev --no-audit --no-fund >"$INSTALL_DIR/npm-install.log" 2>&1) \
+      || die "npm install failed — see $INSTALL_DIR/npm-install.log"
   fi
   ok "node_modules present"
 
