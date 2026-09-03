@@ -71,11 +71,21 @@ print(json.dumps({
     echo "[ OK ] release $TAG created (id $REL_ID)"
   else
     # release already exists? find it
-    curl -fsS -H "Authorization: token $TOKEN" "$API/tags/${TAG#v}" > /tmp/rel.json 2>/dev/null \
+    curl -fsS -H "Authorization: token $TOKEN" "$API/tags/$TAG" > /tmp/rel.json 2>/dev/null \
       || { echo "[FAIL] cannot create nor find release $TAG" >&2; cat /tmp/rel.json; exit 1; }
     REL_ID="$(python3 -c "import json;print(json.load(open('/tmp/rel.json'))['id'])")"
     echo "[INFO] release $TAG already exists (id $REL_ID)"
   fi
+
+  # delete same-named assets first (idempotent re-upload)
+  for an in "$NAME.tar.gz" "$NAME.tar.gz.sha256"; do
+    AID="$(curl -fsS -H "Authorization: token $TOKEN" "$API/tags/$TAG" 2>/dev/null | python3 -c "
+import json,sys
+rel=json.load(sys.stdin)
+for a in rel.get('assets',[]):
+    if a['name']=='$an': print(a['id']); break" 2>/dev/null || true)"
+    [ -n "$AID" ] && curl -fsS -X DELETE -H "Authorization: token $TOKEN" "$API/assets/$AID" >/dev/null 2>&1 && echo "[INFO] replaced existing asset $an"
+  done
 
   for f in "$OUT/$NAME.tar.gz" "$OUT/$NAME.tar.gz.sha256"; do
     echo "[INFO] uploading $(basename "$f")"
