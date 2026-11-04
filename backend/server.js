@@ -50,7 +50,7 @@ const CFG = {
     user: process.env.CC_AMI_USER || "callcenter",
     pass: process.env.CC_AMI_PASS || "CcAmi2026!x",
   },
-  sftp: { host: process.env.CC_PBX_HOST || "192.168.100.85", port: 22, user: "root",
+  sftp: { host: process.env.CC_PBX_HOST || "192.168.100.85", port: parseInt(process.env.CC_SFTP_PORT || "22", 10), user: process.env.CC_SFTP_USER || "root",
           keyPath: process.env.CC_SFTP_KEY || "/opt/callcenter/secrets/cc_rsa" },
   recSpool: process.env.CC_REC_SPOOL || "/var/spool/asterisk/monitor",
   recLocal: process.env.CC_REC_LOCAL || "/opt/callcenter/recordings",

@@ -1,0 +1,188 @@
+name: callcenter-web
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASS:?Run docker/init.sh or set DB_ROOT_PASS in .env}
+      MARIADB_DATABASE: ${DB_NAME:-callcenter}
+      MARIADB_USER: ${DB_USER:-callcenter}
+      MARIADB_PASSWORD: ${DB_PASS:?Set DB_PASS in .env}
+      TZ: ${TZ:-Asia/Tehran}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=${DB_TIME_ZONE:-+03:30}
+    ports:
+      - "127.0.0.1:${DB_PORT:-3306}:3306"
+    networks:
+      - database
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    logging: *default-logging
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    image: callcenter-web-app:local
+    restart: unless-stopped
+    # Preserve the original same-host/loopback topology without changing the
+    # backend's 127.0.0.1 listener. Linux host networking is intentional.
+    network_mode: host
+    environment:
+      NODE_ENV: production
+      TZ: ${TZ:-Asia/Tehran}
+      CC_PORT: ${APP_PORT:-3006}
+      CC_PUBLIC_ORIGIN: https://${CC_DOMAIN:?Set CC_DOMAIN in .env}
+      CC_JWT: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      CC_DB_HOST: 127.0.0.1
+      CC_DB_PORT: ${DB_PORT:-3306}
+      CC_DB_NAME: ${DB_NAME:-callcenter}
+      CC_DB_USER: ${DB_USER:-callcenter}
+      CC_DB_PASS: ${DB_PASS:?Set DB_PASS in .env}
+      CC_PBX_HOST: 127.0.0.1
+      CC_AMI_HOST: 127.0.0.1
+      CC_AMI_PORT: 5038
+      CC_AMI_USER: ${AMI_USER:-callcenter}
+      CC_AMI_PASS: ${AMI_PASS:?Set AMI_PASS in .env}
+      CC_APP_LAN_IP: 127.0.0.1
+      CC_DIAL_EXT: 200
+      CC_VISITOR_SIP_PASS: ${VISITOR_SIP_PASS:?Set VISITOR_SIP_PASS in .env}
+      CC_OP_SIP_PASS: ${OP_SIP_PASS_PATTERN:?Set OP_SIP_PASS_PATTERN in .env}
+      CC_TURN_PUBLIC_IP: ${PUBLIC_IP:?Set PUBLIC_IP in .env}
+      CC_TURN_LAN_IP: ${CC_HOST_IP:?Set CC_HOST_IP in .env}
+      CC_TURN_USER: ${TURN_USER:-callcenter}
+      CC_TURN_PASS: ${TURN_PASS:?Set TURN_PASS in .env}
+      CC_SFTP_PORT: 2222
+      CC_SFTP_USER: ccrec
+      CC_SFTP_KEY: /run/callcenter-keys/cc_ed25519
+      CC_REC_SPOOL: /monitor
+      CC_REC_LOCAL: /var/lib/callcenter/recordings
+      CC_SUPPORT_PHONE: ${SUPPORT_PHONE:-+982191000000}
+      CC_SUPPORT_PHONE_DISPLAY: ${SUPPORT_PHONE_DISPLAY:-}
+      CC_BRAND_NAME: ${BRAND_NAME:-فیرزو}
+      CC_BRAND_COLOR: ${BRAND_COLOR:-#0ea5e9}
+    volumes:
+      - recording_cache:/var/lib/callcenter/recordings
+      - recording_keys:/run/callcenter-keys:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      pbx:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:'+(process.env.CC_PORT||3006)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    logging: *default-logging
+
+  pbx:
+    build:
+      context: .
+      dockerfile: docker/asterisk.Dockerfile
+    image: callcenter-web-pbx:local
+    restart: unless-stopped
+    # RTP must not be translated through thousands of Docker proxy ports.
+    network_mode: host
+    environment:
+      CC_DOMAIN: ${CC_DOMAIN:?Set CC_DOMAIN in .env}
+      PUBLIC_IP: ${PUBLIC_IP:?Set PUBLIC_IP in .env}
+      CC_HOST_IP: ${CC_HOST_IP:?Set CC_HOST_IP in .env}
+      APP_PORT: ${APP_PORT:-3006}
+      VISITOR_SIP_PASS: ${VISITOR_SIP_PASS:?Set VISITOR_SIP_PASS in .env}
+      OP_SIP_PASS_PATTERN: ${OP_SIP_PASS_PATTERN:?Set OP_SIP_PASS_PATTERN in .env}
+      AMI_USER: ${AMI_USER:-callcenter}
+      AMI_PASS: ${AMI_PASS:?Set AMI_PASS in .env}
+      TZ: ${TZ:-Asia/Tehran}
+    volumes:
+      - asterisk_spool:/var/spool/asterisk/monitor
+      - asterisk_state:/var/lib/asterisk
+      - asterisk_logs:/var/log/asterisk
+      - recording_keys:/run/callcenter-keys
+      - pbx_ssh:/run/callcenter-ssh
+    # PBX starts before the app so the backend's first AMI connection succeeds.
+    # Its internal callback URL is not needed until a call is actually placed.
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/pbx-healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    logging: *default-logging
+
+  turn:
+    build:
+      context: .
+      dockerfile: docker/turn.Dockerfile
+    image: callcenter-web-turn:local
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      CC_DOMAIN: ${CC_DOMAIN:?Set CC_DOMAIN in .env}
+      PUBLIC_IP: ${PUBLIC_IP:?Set PUBLIC_IP in .env}
+      CC_HOST_IP: ${CC_HOST_IP:?Set CC_HOST_IP in .env}
+      TURN_USER: ${TURN_USER:-callcenter}
+      TURN_PASS: ${TURN_PASS:?Set TURN_PASS in .env}
+    depends_on:
+      pbx:
+        condition: service_healthy
+    logging: *default-logging
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx.Dockerfile
+    image: callcenter-web-nginx:local
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      CC_DOMAIN: ${CC_DOMAIN:?Set CC_DOMAIN in .env}
+      APP_PORT: ${APP_PORT:-3006}
+    volumes:
+      - ${TLS_CERT_FILE:-./docker/certs/fullchain.pem}:/etc/nginx/tls/fullchain.pem:ro,z
+      - ${TLS_KEY_FILE:-./docker/certs/privkey.pem}:/etc/nginx/tls/privkey.pem:ro,z
+    depends_on:
+      app:
+        condition: service_healthy
+      pbx:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging: *default-logging
+
+networks:
+  database:
+    driver: bridge
+
+volumes:
+  db_data:
+  recording_cache:
+  recording_keys:
+  asterisk_spool:
+  asterisk_state:
+  asterisk_logs:
+  pbx_ssh:
