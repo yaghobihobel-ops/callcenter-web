@@ -1,0 +1,19 @@
+.git
+.github
+**/.env
+**/.env.*
+**/node_modules
+**/*.log
+**/*.db
+**/*.sqlite
+**/secrets
+**/recordings
+**/generated-creds*
+docker/certs
+docker/runtime
+# The exported reference bundle contains deployment-specific credentials.
+asterisk/bundle
+docs/screenshots
+dist
+build
+coverage
